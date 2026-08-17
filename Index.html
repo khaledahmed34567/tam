@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تم - للحلول التقنية والأمن السيبراني</title>
+    <!-- Web App Icon / Manifest -->
+    <link rel="icon" type="image/png" href="https://i.ibb.co/dJGQQqx9/icon.png" id="app-icon">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* تعريف الخطوط المخصصة للشركة */
+        @font-face {
+            font-family: 'TamOfficialFont';
+            src: url('https://files.catbox.moe/i9jfcf.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'TamHeaderFont';
+            src: url('https://files.catbox.moe/mxc4bg.ttf') format('truetype');
+            font-weight: bold;
+        }
+        @font-face {
+            font-family: 'TamTextFont';
+            src: url('https://files.catbox.moe/sgpf34.otf') format('opentype');
+        }
+
+        :root {
+            --color-header: #FFFFFF;
+            --color-body: #013D31;
+            --color-button: #27A17E;
+            --color-button-hover: #1f8266;
+            --color-text: #FFFFFF;
+        }
+
+        /* استخدام الخط الرسمي لجميع عناصر الموقع بشكل افتراضي */
+        body {
+            background-color: var(--color-body);
+            color: var(--color-text);
+            font-family: 'TamOfficialFont', system-ui, -apple-system, sans-serif;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* خط العناوين والأسعار المخصص */
+        .price-text, .price-font, .header-font {
+            font-family: 'TamHeaderFont', system-ui, sans-serif;
+        }
+
+        /* خط النصوص والعناوين الخاص بالمقالات والمدونة حصراً */
+        .article-title-font {
+            font-family: 'TamHeaderFont', system-ui, sans-serif;
+        }
+        
+        .article-body-font {
+            font-family: 'TamTextFont', system-ui, sans-serif;
+        }
+
+        /* الهيدر الأبيض */
+        header {
+            background-color: #FFFFFF !important;
+            color: #013D31 !important;
+            border-bottom: 1px solid rgba(1, 61, 49, 0.15);
+        }
+
+        /* التأثيرات الزجاجية (Glassmorphism) */
+        .glass-card {
+            background: rgba(39, 161, 126, 0.12);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(175, 223, 205, 0.22);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border-radius: 1.25rem;
+        }
+
+        .glass-card-hover {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card-hover:hover {
+            background: rgba(39, 161, 126, 0.22);
+            border-color: rgba(175, 223, 205, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px 0 rgba(39, 161, 126, 0.35);
+        }
+
+        .btn-tam {
+            background-color: var(--color-button);
+            color: #FFFFFF;
+            transition: all 0.3s ease;
+        }
+
+        .btn-tam:hover {
+            background-color: var(--color-button-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 161, 126, 0.4);
+        }
+
+        /* أنيميشن التوهج والحركات المخصصة */
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(39, 161, 126, 0.3); }
+            50% { transform: scale(1.02); box-shadow: 0 0 35px rgba(175, 223, 205, 0.6); }
+        }
+
+        .animate-glow {
+            animation: pulseGlow 4s infinite ease-in-out;
+        }
+
+        .partner-logo {
+            filter: grayscale(100%) brightness(180%) opacity(0.8);
+            transition: all 0.3s ease;
+        }
+
+        .partner-logo:hover {
+            filter: grayscale(0%) brightness(100%) opacity(1);
+            transform: scale(1.08);
+        }
+
+        /* أسلوب الطباعة */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-area, #printable-area * {
+                visibility: visible;
+            }
+            #printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                color: #000 !important;
+                background: #fff !important;
+                padding: 20px;
+            }
+        }
+
+        .modal-backdrop {
+            background-color: rgba(1, 61, 49, 0.9);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- شريط العروض الخاصة العلوي -->
+    <div id="top-offers-bar" class="bg-[#27A17E] text-white py-2 px-4 relative z-50 overflow-hidden border-b border-[#AFDFCD]/30">
+        <div class="max-w-7xl mx-auto flex items-center justify-between text-xs sm:text-sm">
+            <div class="flex items-center gap-3 overflow-hidden w-full">
+                <span class="bg-[#013D31] text-[#AFDFCD] px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shrink-0 animate-pulse">
+                    <i class="fa-solid fa-fire text-amber-300"></i> عرض خاص
+                </span>
+                <div class="overflow-hidden w-full cursor-pointer hover:underline" onclick="scrollToSection('sec-services')">
+                    <span>خصم يصل إلى 15% على جميع خدمات اختبار الاختراق والأمن السيبراني بمناسبة انطلاق منصة تم!</span>
+                </div>
+            </div>
+            <button onclick="closeOffersBar()" class="text-white hover:text-red-200 mr-2 text-base shrink-0"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+
+    <!-- Header الأبيض مع قائمة الصفحات الشاملة وأزرار الدخول -->
+    <header class="shadow-md sticky top-0 z-40 transition-all duration-300 bg-white text-[#013D31]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- اللوجو الداكن المعتمد للخلفية البيضاء -->
+                <div class="flex items-center">
+                    <a href="#sec-home" onclick="scrollToSection('sec-home')" class="flex items-center gap-2">
+                        <img src="https://i.ibb.co/kV8Fpyqp/logo-dark.png" alt="شعار تم الداكن" class="h-12 w-auto object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/150x50/FFFFFF/013D31?text=TAM';">
+                    </a>
+                </div>
+
+                <!-- قائمة الصفحات الشاملة (تتضمن تسجيل الدخول وإنشاء الحساب) -->
+                <nav class="hidden xl:flex items-center space-x-3 space-x-reverse text-sm font-bold text-[#013D31]">
+                    <button onclick="scrollToSection('sec-home')" class="hover:text-[#27A17E] transition py-1">الرئيسية</button>
+                    <button onclick="scrollToSection('sec-services')" class="hover:text-[#27A17E] transition py-1">الخدمات والأسعار</button>
+                    <button onclick="scrollToSection('sec-projects')" class="hover:text-[#27A17E] transition py-1">أعمالنا</button>
+                    <button onclick="scrollToSection('sec-partners')" class="hover:text-[#27A17E] transition py-1">شركاؤنا</button>
+                    <button onclick="scrollToSection('sec-certs')" class="hover:text-[#27A17E] transition py-1 text-[#27A17E]">شهاداتنا ورخصنا</button>
+                    <button onclick="scrollToSection('sec-articles')" class="hover:text-[#27A17E] transition py-1">المقالات</button>
+                    <button onclick="scrollToSection('sec-books')" class="hover:text-[#27A17E] transition py-1">الكتيبات</button>
+                    <button onclick="scrollToSection('sec-terms')" class="hover:text-[#27A17E] transition py-1">الشروط والبنود</button>
+                    <button onclick="scrollToSection('sec-rights')" class="hover:text-[#27A17E] transition py-1">حقوق المستخدم</button>
+                    <button onclick="scrollToSection('sec-join')" class="hover:text-[#27A17E] transition py-1">الانضمام للفريق</button>
+
+                    <!-- أزرار تسجيل الدخول وإنشاء حساب داخل قائمة الصفحات -->
+                    <div id="nav-auth-container" class="flex items-center gap-2 mr-2 border-r border-[#013D31]/20 pr-3">
+                        <button onclick="openModal('login-modal')" class="px-3 py-1.5 rounded-lg bg-[#013D31] text-white hover:bg-opacity-90 transition text-xs">تسجيل دخول</button>
+                        <button onclick="openModal('register-modal')" class="btn-tam px-3 py-1.5 rounded-lg text-xs">إنشاء حساب</button>
+                    </div>
+
+                    <!-- الملف الشخصي عند تسجيل الدخول -->
+                    <div id="user-info" class="hidden items-center gap-2 mr-2 border-r border-[#013D31]/20 pr-3">
+                        <span id="user-display-name" class="font-bold text-[#013D31] text-xs"></span>
+                        <button onclick="logout()" class="px-2.5 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition">خروج</button>
+                    </div>
+
+                    <button id="nav-admin-btn" onclick="scrollToSection('sec-admin')" class="hidden text-red-800 hover:text-red-950 transition font-extrabold flex items-center gap-1">
+                        <i class="fa-solid fa-user-shield"></i> الأدمن
+                    </button>
+                </nav>
+
+                <button class="xl:hidden text-2xl text-[#013D31] p-2" onclick="toggleMobileMenu()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- القائمة المنسدلة للهواتف -->
+        <div id="mobile-menu" class="hidden xl:hidden bg-white px-4 pt-2 pb-4 space-y-2 border-t border-[#27A17E] text-[#013D31] font-bold">
+            <button onclick="scrollToSection('sec-home'); toggleMobileMenu();" class="block w-full text-right py-2">الرئيسية</button>
+            <button onclick="scrollToSection('sec-services'); toggleMobileMenu();" class="block w-full text-right py-2 text-[#27A17E]">الخدمات والأسعار المباشرة</button>
+            <button onclick="scrollToSection('sec-projects'); toggleMobileMenu();" class="block w-full text-right py-2">أعمالنا</button>
+            <button onclick="scrollToSection('sec-partners'); toggleMobileMenu();" class="block w-full text-right py-2">شركاؤنا</button>
+            <button onclick="scrollToSection('sec-certs'); toggleMobileMenu();" class="block w-full text-right py-2 text-[#27A17E]">شهاداتنا ورخصنا</button>
+            <button onclick="scrollToSection('sec-articles'); toggleMobileMenu();" class="block w-full text-right py-2">المقالات والمدونة</button>
+            <button onclick="scrollToSection('sec-books'); toggleMobileMenu();" class="block w-full text-right py-2">الكتيبات</button>
+            <button onclick="scrollToSection('sec-terms'); toggleMobileMenu();" class="block w-full text-right py-2">الشروط والبنود</button>
+            <button onclick="scrollToSection('sec-rights'); toggleMobileMenu();" class="block w-full text-right py-2">حقوق المستخدم</button>
+            <button onclick="scrollToSection('sec-join'); toggleMobileMenu();" class="block w-full text-right py-2">الانضمام للفريق</button>
+
+            <!-- أزرار الحساب داخل قائمة الموبايل -->
+            <div id="mobile-auth-btns" class="pt-2 border-t border-[#013D31]/20 flex gap-2">
+                <button onclick="openModal('login-modal'); toggleMobileMenu();" class="w-1/2 py-2 bg-[#013D31] text-white rounded text-center text-xs">تسجيل دخول</button>
+                <button onclick="openModal('register-modal'); toggleMobileMenu();" class="w-1/2 py-2 btn-tam rounded text-center text-xs">إنشاء حساب</button>
+            </div>
+            <div id="mobile-user-info" class="hidden pt-2 border-t border-[#013D31]/20 justify-between items-center">
+                <span id="mobile-user-name" class="text-xs"></span>
+                <button onclick="logout()" class="px-3 py-1 text-xs bg-red-600 text-white rounded">خروج</button>
+            </div>
+            <button id="mobile-nav-admin-btn" onclick="scrollToSection('sec-admin'); toggleMobileMenu();" class="hidden text-red-800 font-extrabold block w-full text-right py-2">لوحة الأدمن</button>
+        </div>
+    </header>
+
+    <!-- MAIN SINGLE PAGE CONTENT (صفحة كاملة متصلة وسلسة) -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full space-y-24">
+
+        <!-- Banner section -->
+        <section id="banner-section" class="hidden">
+            <div class="glass-card p-4 relative overflow-hidden">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold uppercase bg-[#27A17E] text-white px-3 py-1 rounded-full">إعلانات تم المميزة</span>
+                    <span id="banner-counter" class="text-xs text-gray-300"></span>
+                </div>
+                <div id="banner-carousel" class="min-h-[130px] flex items-center justify-center text-center"></div>
+            </div>
+        </section>
+
+        <!-- SECTION 1: الرئيسية (Hero Section) -->
+        <section id="sec-home" class="scroll-mt-28 min-h-[75vh] flex flex-col justify-center">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-10 py-6">
+                <div class="md:w-1/2 space-y-6">
+                    <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight">
+                        نبتكر الحلول الرقمية <br/>
+                        <span class="text-[#AFDFCD]">ونحمي استثماراتك السيبرانية</span>
+                    </h1>
+                    <p class="text-lg text-gray-200 leading-relaxed">
+                        شركة تم لتطوير التطبيقات المتقدمة والمواقع الإلكترونية، وخدمات الأمن السيبراني واختبار الاختراق الاحترافي. نضمن لك أماناً مطلقاً وأداءً استثنائياً.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-4">
+                        <button onclick="scrollToSection('sec-services')" class="btn-tam px-8 py-3.5 rounded-xl font-bold text-lg shadow-lg flex items-center gap-2">
+                            <i class="fa-solid fa-tags"></i> استكشف الأسعار والخدمات
+                        </button>
+                        <button onclick="scrollToSection('sec-join')" class="bg-transparent border-2 border-[#AFDFCD] text-[#AFDFCD] hover:bg-[#AFDFCD] hover:text-[#013D31] transition px-8 py-3.5 rounded-xl font-bold text-lg">
+                            الانضمام للفريق
+                        </button>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <div class="p-8 glass-card animate-glow">
+                        <img src="https://i.ibb.co/dJbSFdzr/logo-light.png" alt="شعار تم الفاتح" class="max-w-md w-full h-auto object-contain drop-shadow-2xl" onerror="this.onerror=null; this.src='https://via.placeholder.com/400x300/013D31/AFDFCD?text=TAM+Light+Logo';">
+                    </div>
+                </div>
+            </div>
+
+            <!-- المميزات الرئيسية -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-12">
+                <div class="glass-card glass-card-hover p-6 text-center space-y-3">
+                    <i class="fa-solid fa-mobile-screen-button text-4xl text-[#AFDFCD]"></i>
+                    <h3 class="text-xl font-bold">تطوير التطبيقات</h3>
+                    <p class="text-xs text-gray-300">برمجة وتطوير تطبيقات الهواتف والمنصات الذكية بأحدث التقنيات.</p>
+                </div>
+                <div class="glass-card glass-card-hover p-6 text-center space-y-3">
+                    <i class="fa-solid fa-globe text-4xl text-[#AFDFCD]"></i>
+                    <h3 class="text-xl font-bold">تطوير المواقع</h3>
+                    <p class="text-xs text-gray-300">مواقع وبوابات إلكترونية فائقة السرعة ومتوافقة مع جميع الأجهزة.</p>
+                </div>
+                <div class="glass-card glass-card-hover p-6 text-center space-y-3">
+                    <i class="fa-solid fa-shield-halved text-4xl text-[#AFDFCD]"></i>
+                    <h3 class="text-xl font-bold">الأمن السيبراني</h3>
+                    <p class="text-xs text-gray-300">حماية البنية التحتية البرمجية وتأمين قواعد البيانات ضد أي اختراق.</p>
+                </div>
+                <div class="glass-card glass-card-hover p-6 text-center space-y-3">
+                    <i class="fa-solid fa-user-ninja text-4xl text-[#AFDFCD]"></i>
+                    <h3 class="text-xl font-bold">اختبار الاختراق</h3>
+                    <p class="text-xs text-gray-300">فحص وتحديد الثغرات الأمنية ومعالجتها وفق أحدث المعايير العالمية.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: الخدمات والأسعار بالجنيه المصري -->
+        <section id="sec-services" class="scroll-mt-28 space-y-8">
+            <div class="text-center space-y-3">
+                <div class="inline-flex items-center gap-2 bg-[#27A17E]/20 text-[#AFDFCD] px-4 py-1.5 rounded-full text-xs font-bold border border-[#27A17E]">
+                    <i class="fa-solid fa-link"></i> رابط مباشر للأسعار بالجنيه المصري
+                </div>
+                <h2 class="text-3xl font-bold text-[#AFDFCD] price-text">قائمة الخدمات والتسعير</h2>
+                <p class="text-gray-300 text-sm">احسب تكلفة خدمتك فوراً بالجنيه المصري مع تفاصيل الدفع والخصومات والتقسيط</p>
+                
+                <div class="pt-2">
+                    <button onclick="copyDirectPriceLink()" class="bg-[#27A17E] text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-[#1f8266] transition inline-flex items-center gap-2">
+                        <i class="fa-solid fa-share-nodes"></i> نسخ الرابط المباشر للأسعار
+                    </button>
+                </div>
+            </div>
+
+            <!-- التبويبات الثلاثة -->
+            <div class="flex justify-center border-b border-[#27A17E]/50">
+                <button onclick="switchPriceTab('direct')" id="tab-direct" class="px-6 py-3 font-bold text-base sm:text-lg border-b-4 border-[#AFDFCD] text-[#AFDFCD] focus:outline-none price-text">أسعار دفع مباشر</button>
+                <button onclick="switchPriceTab('installment')" id="tab-installment" class="px-6 py-3 font-bold text-base sm:text-lg text-gray-400 border-b-4 border-transparent hover:text-[#AFDFCD] focus:outline-none price-text">خدمات التقسيط</button>
+                <button onclick="switchPriceTab('rent')" id="tab-rent" class="px-6 py-3 font-bold text-base sm:text-lg text-gray-400 border-b-4 border-transparent hover:text-[#AFDFCD] focus:outline-none price-text">خدمات الإيجار</button>
+            </div>
+
+            <!-- محتوى الجداول الزجاجي -->
+            <div class="glass-card p-6 overflow-x-auto">
+                <table class="w-full text-right text-sm sm:text-base">
+                    <thead>
+                        <tr class="border-b border-[#27A17E] text-[#AFDFCD]">
+                            <th class="py-3 px-4">اسم الخدمة</th>
+                            <th class="py-3 px-4">السعر الأساسي</th>
+                            <th class="py-3 px-4">نسبة الخصم</th>
+                            <th class="py-3 px-4">السعر بعد الخصم</th>
+                            <th class="py-3 px-4">ملاحظة وتنبيه</th>
+                            <th class="py-3 px-4 text-center">الطلب والإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="services-table-body">
+                        <!-- تُحمل البيانات من قاعدة البيانات حصراً -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECTION 3: أعمالنا -->
+        <section id="sec-projects" class="scroll-mt-28 space-y-8">
+            <div class="text-center space-y-2">
+                <h2 class="text-3xl font-bold text-[#AFDFCD]">أعمالنا وتطبيقاتنا المنجزة</h2>
+                <p class="text-gray-300 text-sm">معرض للمشروعات والأنظمة التي قمنا بتطويرها مع الروابط المباشرة</p>
+            </div>
+            <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- تحميل البيانات المحملة من قاعدة البيانات -->
+            </div>
+        </section>
+
+        <!-- SECTION 4: شركاؤنا -->
+        <section id="sec-partners" class="scroll-mt-28 space-y-8">
+            <div class="text-center space-y-2">
+                <h2 class="text-3xl font-bold text-[#AFDFCD]">شركاء النجاح</h2>
+                <p class="text-gray-300 text-sm">نفخر بالتعاون مع كبرى الشركات والأنشطة الرقمية</p>
+            </div>
+            <div id="partners-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 items-center justify-center p-8 glass-card">
+                <!-- تحميل بيانات الشركاء من قاعدة البيانات -->
+            </div>
+        </section>
+
+        <!-- SECTION 5: شهاداتنا ورخصنا (جديد) -->
+        <section id="sec-certs" class="scroll-mt-28 space-y-8">
+            <div class="text-center space-y-2">
+                <h2 class="text-3xl font-bold text-[#AFDFCD]">شهاداتنا ورخصنا الاعتمادية</h2>
+                <p class="text-gray-300 text-sm">استعرض التراخيص والاعتمادات الأمنية والبرمجية الرسمية لشركة تم</p>
+            </div>
+            <div id="certs-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- تُحمل البيانات المرفوعة عبر الأدمن في قاعدة البيانات -->
+            </div>
+        </section>
+
+        <!-- SECTION 6: المقالات والمدونة (بخطوط المقالات الخاصة) -->
+        <section id="sec-articles" class="scroll-mt-28 space-y-8">
+            <div class="text-center space-y-2">
+                <h2 class="text-3xl font-bold text-[#AFDFCD] article-title-font">مقالات ومدونة تم</h2>
+                <p class="text-gray-300 text-sm article-body-font">أحدث المقالات والأخبار التقنية والأمنية بمحتوى غني بخط المقالات والتنسيق المخصص</p>
+            </div>
+            <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- تُحمل المقالات من قاعدة البيانات -->
+            </div>
+        </section>
+
+        <!-- SECTION المنفرد للمقال -->
+        <section id="sec-single-article" class="scroll-mt-28 max-w-4xl mx-auto space-y-6 hidden glass-card p-8">
+            <button onclick="scrollToSection('sec-articles')" class="btn-tam px-4 py-2 rounded-lg text-xs font-bold mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-arrow-right"></i> العودة للمقالات
+            </button>
+            <div id="single-article-content"></div>
+            <div class="flex flex-wrap gap-4 pt-6 border-t border-[#27A17E]/30">
+                <button onclick="printCurrentArticle()" class="btn-tam px-6 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-print"></i> طباعة المقال بتنسيق تم
+                </button>
+                <button onclick="copyArticleShareLink()" class="bg-[#013D31] text-[#AFDFCD] border border-[#27A17E] px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-[#27A17E] hover:text-white transition flex items-center gap-2">
+                    <i class="fa-solid fa-share-nodes"></i> نسخ الرابط الفريد للمقال
+                </button>
+            </div>
+        </section>
+
+        <!-- SECTION 7: الكتيبات (تحميل مباشر) -->
+        <section id="sec-books" class="scroll-mt-28 space-y-8">
+            <div class="text-center space-y-2">
+                <h2 class="text-3xl font-bold text-[#AFDFCD]">الكتيبات والأدلة التقنية</h2>
+                <p class="text-gray-300 text-sm">تحميل مباشر للكتيبات والوثائق التعريفية بصيغة PDF فوراً على الجوال</p>
+            </div>
+            <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- تحميل بيانات الكتيبات من قاعدة البيانات -->
+            </div>
+        </section>
+
+        <!-- SECTION 8: الشروط والبنود -->
+        <section id="sec-terms" class="scroll-mt-28 space-y-6">
+            <div class="text-center space-y-2">
+                <h2 class="text-3xl font-bold text-[#AFDFCD]">الشروط والبنود الرسمية</h2>
+                <p class="text-gray-300 text-sm">لوائح وشروط العمل والتعاقد المتبعة لدى شركة تم</p>
+            </div>
+            <div class="glass-card p-8 space-y-6 leading-relaxed">
+                <div class="space-y-3">
+                    <h3 class="text-xl font-bold text-[#AFDFCD] flex items-center gap-2"><i class="fa-solid fa-file-contract text-[#27A17E]"></i> 1. شروط التعاقد والبدء بالمشروع</h3>
+                    <p class="text-sm text-gray-200">يتم الاعتماد الرسمي للطلبات والمشاريع عقب توثيق المتطلبات البرمجية المعتمدة وتسديد الدفعة الأولى أو تفعيل خطة التقسيط/الإيجار المحددة بجدول الأسعار.</p>
+                </div>
+                <div class="space-y-3 border-t border-[#27A17E]/30 pt-4">
+                    <h3 class="text-xl font-bold text-[#AFDFCD] flex items-center gap-2"><i class="fa-solid fa-clock text-[#27A17E]"></i> 2. مواعيد التسليم والجداول الزمنية</h3>
+                    <p class="text-sm text-gray-200">تلتزم شركة تم بالتسليم في الموعد المحدد المدون بالعقد الإلكتروني، ما لم يطرح العميل تعديلات جوهرية خارج نطاق وثيقة العمل الأولى.</p>
+                </div>
+                <div class="space-y-3 border-t border-[#27A17E]/30 pt-4">
+                    <h3 class="text-xl font-bold text-[#AFDFCD] flex items-center gap-2"><i class="fa-solid fa-shield-virus text-[#27A17E]"></i> 3. فحص الجودة واختبار الاختراق</h3>
+                    <p class="text-sm text-gray-200">تستوفى جميع التطبيقات والمواقع فحصاً سيبرانياً شاملاً قبل النشر، وتسليم تقرير الأمان الشامل ومفاتيح التشفير للعميل.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 9: حقوق المستخدم -->
+        <section id="sec-rights" class="scroll-mt-28 space-y-6">
+            <div class="text-center space-y-2">
+                <h2 class="text-3xl font-bold text-[#AFDFCD]">حقوق العميل والمستخدم</h2>
+                <p class="text-gray-300 text-sm">ضمانات تم لحماية خصوصيتك وحقوقك البرمجية والسيبرانية</p>
+            </div>
+            <div class="glass-card p-8 space-y-6 leading-relaxed">
+                <div class="space-y-3">
+                    <h3 class="text-xl font-bold text-[#AFDFCD] flex items-center gap-2"><i class="fa-solid fa-user-shield text-[#27A17E]"></i> 1. ملكية الكود والتطبيقات</h3>
+                    <p class="text-sm text-gray-200">يحق للعميل عند تسليم المشروع بالكامل الحصول على النسخة المصدرية (Source Code) وقواعد البيانات المشفرة وفق بنود العقد.</p>
+                </div>
+                <div class="space-y-3 border-t border-[#27A17E]/30 pt-4">
+                    <h3 class="text-xl font-bold text-[#AFDFCD] flex items-center gap-2"><i class="fa-solid fa-lock text-[#27A17E]"></i> 2. سرية وحماية البيانات</h3>
+                    <p class="text-sm text-gray-200">تلتزم تم بتشفير رقم الهوية الوطنية والبيانات الحساسة كلياً وعدم مشاركتها مع أي طرف، مع ضمان الدعم الفني المجاني طوال فترة الضمان.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 10: الانضمام للفريق -->
+        <section id="sec-join" class="scroll-mt-28 max-w-2xl mx-auto space-y-6">
+            <div id="join-auth-gate" class="glass-card p-8 text-center space-y-4 animate-glow">
+                <div class="w-16 h-16 bg-[#27A17E] text-white rounded-full flex items-center justify-center mx-auto text-2xl shadow-lg">
+                    <i class="fa-solid fa-user-lock"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-[#AFDFCD]">يلزم إنشاء حساب للانضمام إلى الفريق</h3>
+                <p class="text-gray-200 text-sm">للانضمام إلى فريق شركة تم وتقديم طلبك وسيرتك الذاتية، يرجى إنشاء حساب جديد أو تسجيل الدخول بحسابك أولاً من قائمة الصفحات.</p>
+                <div class="flex justify-center gap-4 pt-2">
+                    <button onclick="openModal('register-modal')" class="btn-tam px-6 py-3 rounded-xl font-bold">إنشاء حساب جديد الان</button>
+                    <button onclick="openModal('login-modal')" class="bg-[#013D31] border border-[#AFDFCD] text-[#AFDFCD] px-6 py-3 rounded-xl font-bold hover:bg-[#AFDFCD] hover:text-[#013D31] transition">تسجيل الدخول</button>
+                </div>
+            </div>
+
+            <div id="join-form-wrapper" class="hidden glass-card p-8 space-y-6">
+                <div class="text-center space-y-2">
+                    <h2 class="text-3xl font-bold text-[#AFDFCD]">طلب الانضمام لـ فريق تم</h2>
+                    <p class="text-gray-300 text-xs">تم تعبئة بيانات حسابك تلقائياً، أضف مهاراتك وشهاداتك لإرسال الطلب</p>
+                </div>
+
+                <form id="join-team-form" onsubmit="handleJoinSubmit(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">الاسم الرباعي</label>
+                        <input type="text" id="join-fullname" required readonly class="w-full p-3 rounded-lg bg-[#012d24] border border-[#27A17E] text-gray-300 focus:outline-none">
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">البريد الإلكتروني</label>
+                            <input type="email" id="join-email" required readonly class="w-full p-3 rounded-lg bg-[#012d24] border border-[#27A17E] text-gray-300 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">رقم الهاتف</label>
+                            <input type="tel" id="join-phone" required readonly class="w-full p-3 rounded-lg bg-[#012d24] border border-[#27A17E] text-gray-300 focus:outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">رقم الهوية الوطنية (14 رقم)</label>
+                            <input type="text" id="join-national-id" maxlength="14" minlength="14" required readonly class="w-full p-3 rounded-lg bg-[#012d24] border border-[#27A17E] text-gray-300 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">الوظيفة المستهدفة</label>
+                            <input type="text" id="join-job" required class="w-full p-3 rounded-lg bg-[#013D31] border border-[#27A17E] text-white focus:outline-none focus:border-[#AFDFCD]">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">المهارات والخبرات</label>
+                        <textarea id="join-skills" rows="3" required placeholder="اذكر أبرز مهاراتك..." class="w-full p-3 rounded-lg bg-[#013D31] border border-[#27A17E] text-white focus:outline-none focus:border-[#AFDFCD]"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">رفع الشهادات والمستندات (رفع مباشر)</label>
+                        <input type="file" id="join-file" accept="image/*,.pdf" class="w-full p-2 rounded-lg bg-[#013D31] border border-[#27A17E] text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#27A17E] file:text-white hover:file:bg-[#1f8266]">
+                    </div>
+                    <button type="submit" class="w-full btn-tam py-3.5 rounded-lg font-bold text-lg shadow-md flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i> إرسال طلب الانضمام
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION 11: لوحة التحكم (الأدمن المباشرة) -->
+        <section id="sec-admin" class="scroll-mt-28 space-y-8 hidden">
+            <div class="flex justify-between items-center border-b border-[#27A17E] pb-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-[#AFDFCD]">لوحة تحكم إدارة تم (Admin Panel)</h2>
+                    <p class="text-sm text-gray-300">إدارة الخدمات، الشهادات، المقالات، والأعمال بالاتصال المباشر بقاعدة البيانات</p>
+                </div>
+                <button onclick="refreshAdminData()" class="btn-tam px-4 py-2 rounded-lg text-sm"><i class="fa-solid fa-arrows-rotate"></i> تحديث المباشر</button>
+            </div>
+
+            <!-- إحصائيات الأدمن -->
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-6">
+                <div class="glass-card p-5 text-center">
+                    <p class="text-gray-300 text-xs">إجمالي الخدمات</p>
+                    <h3 id="stat-services-count" class="text-3xl font-bold text-[#AFDFCD] price-font">0</h3>
+                </div>
+                <div class="glass-card p-5 text-center">
+                    <p class="text-gray-300 text-xs">أعمالنا المنجزة</p>
+                    <h3 id="stat-projects-count" class="text-3xl font-bold text-[#AFDFCD] price-font">0</h3>
+                </div>
+                <div class="glass-card p-5 text-center">
+                    <p class="text-gray-300 text-xs">الشهادات والتراخيص</p>
+                    <h3 id="stat-certs-count" class="text-3xl font-bold text-[#AFDFCD] price-font">0</h3>
+                </div>
+                <div class="glass-card p-5 text-center">
+                    <p class="text-gray-300 text-xs">الإعلانات النشطة</p>
+                    <h3 id="stat-ads-count" class="text-3xl font-bold text-[#AFDFCD] price-font">0</h3>
+                </div>
+            </div>
+
+            <!-- نماذج الأدمن للربط الحصري بقاعدة البيانات -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- رفع شهادة أو ترخيص -->
+                <div class="glass-card p-5">
+                    <h3 class="text-base font-bold text-[#AFDFCD] mb-3">إضافة شهادة أو ترخيص جديد</h3>
+                    <form onsubmit="handleAddCertificate(event)" class="space-y-3">
+                        <input type="text" id="admin-cert-title" placeholder="اسم الشهادة / الترخيص" required class="w-full p-2 rounded bg-[#013D31] border border-[#27A17E] text-xs">
+                        <input type="text" id="admin-cert-issuer" placeholder="الجهة المصدرة" required class="w-full p-2 rounded bg-[#013D31] border border-[#27A17E] text-xs">
+                        <input type="file" id="admin-cert-img" accept="image/*" required class="w-full p-1 bg-[#013D31] text-xs">
+                        <button type="submit" class="w-full btn-tam py-2 rounded text-xs font-bold">رفع الشهادة لقاعدة البيانات</button>
+                    </form>
+                </div>
+
+                <!-- إضافة مشروع لأعمالنا -->
+                <div class="glass-card p-5">
+                    <h3 class="text-base font-bold text-[#AFDFCD] mb-3">إضافة مشروع لأعمالنا</h3>
+                    <form onsubmit="handleAddProject(event)" class="space-y-3">
+                        <input type="text" id="admin-proj-name" placeholder="اسم المشروع" required class="w-full p-2 rounded bg-[#013D31] border border-[#27A17E] text-xs">
+                        <input type="text" id="admin-proj-desc" placeholder="الوصف" required class="w-full p-2 rounded bg-[#013D31] border border-[#27A17E] text-xs">
+                        <input type="url" id="admin-proj-link" placeholder="رابط المشروع" required class="w-full p-2 rounded bg-[#013D31] border border-[#27A17E] text-xs">
+                        <input type="file" id="admin-proj-img" accept="image/*" class="w-full p-1 bg-[#013D31] text-xs">
+                        <button type="submit" class="w-full btn-tam py-2 rounded text-xs font-bold">نشر المشروع</button>
+                    </form>
+                </div>
+
+                <!-- إضافة خدمة جديدة -->
+                <div class="glass-card p-5">
+                    <h3 class="text-base font-bold text-[#AFDFCD] mb-3">إضافة خدمة جديدة</h3>
+                    <form onsubmit="handleAddService(event)" class="space-y-2">
+                        <select id="admin-serv-category" class="w-full p-1.5 rounded bg-[#013D31] border border-[#27A17E] text-xs">
+                            <option value="direct">دفع مباشر</option>
+                            <option value="installment">تقسيط</option>
+                            <option value="rent">إيجار</option>
+                        </select>
+                        <input type="text" id="admin-serv-name" placeholder="اسم الخدمة" required class="w-full p-1.5 rounded bg-[#013D31] border border-[#27A17E] text-xs">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="admin-serv-price" placeholder="السعر (ج.م)" required class="w-full p-1.5 rounded bg-[#013D31] border border-[#27A17E] text-xs">
+                            <input type="number" id="admin-serv-discount" placeholder="خصم %" value="0" class="w-full p-1.5 rounded bg-[#013D31] border border-[#27A17E] text-xs">
+                        </div>
+                        <button type="submit" class="w-full btn-tam py-2 rounded text-xs font-bold">حفظ الخدمة</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER Section -->
+    <footer class="bg-[#012d24] border-t border-[#27A17E]/40 py-6 mt-16">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-right">
+            <div class="flex items-center gap-3">
+                <span class="text-sm">جميع الحقوق محفوظة لدى تم</span>
+                <img src="https://i.ibb.co/Kc0szX4B/rights-icon.png" alt="شعار الحقوق" class="h-6 w-auto inline-block" onerror="this.onerror=null; this.src='https://via.placeholder.com/30/27A17E/FFFFFF?text=TAM';">
+            </div>
+            <div class="text-xs text-gray-400">
+                شركة تطوير البرمجيات والأمن السيبراني واختبار الاختراق &copy; 2026
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODALS -->
+    <!-- تسجيل الدخول -->
+    <div id="login-modal" class="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-[#013D31] border border-[#27A17E] rounded-2xl w-full max-w-md p-6 relative shadow-2xl">
+            <button onclick="closeModal('login-modal')" class="absolute top-4 left-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-2xl font-bold text-[#AFDFCD] mb-4 text-center">تسجيل الدخول</h3>
+            
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold mb-1">تسجيل الدخول بواسطة</label>
+                    <select id="login-type" class="w-full p-3 rounded-lg bg-[#012d24] border border-[#27A17E] text-white">
+                        <option value="email">البريد الإلكتروني</option>
+                        <option value="phone">رقم الهاتف</option>
+                        <option value="national_id">رقم الهوية الوطنية</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">المعرف / اسم المستخدم</label>
+                    <input type="text" id="login-identifier" required class="w-full p-3 rounded-lg bg-[#012d24] border border-[#27A17E] text-white focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">كلمة المرور</label>
+                    <input type="password" id="login-password" required class="w-full p-3 rounded-lg bg-[#012d24] border border-[#27A17E] text-white focus:outline-none">
+                </div>
+                <button type="submit" class="w-full btn-tam py-3 rounded-lg font-bold">دخول</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- إنشاء حساب -->
+    <div id="register-modal" class="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-[#013D31] border border-[#27A17E] rounded-2xl w-full max-w-lg p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('register-modal')" class="absolute top-4 left-4 text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-2xl font-bold text-[#AFDFCD] mb-4 text-center">إنشاء حساب جديد</h3>
+            
+            <form onsubmit="handleRegister(event)" class="space-y-3">
+                <div>
+                    <label class="block text-sm font-semibold mb-1">الاسم الرباعي</label>
+                    <input type="text" id="reg-fullname" required class="w-full p-2.5 rounded bg-[#012d24] border border-[#27A17E] text-white">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">البريد الإلكتروني</label>
+                        <input type="email" id="reg-email" required class="w-full p-2.5 rounded bg-[#012d24] border border-[#27A17E] text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">رقم الهاتف</label>
+                        <input type="tel" id="reg-phone" required class="w-full p-2.5 rounded bg-[#012d24] border border-[#27A17E] text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">العنوان</label>
+                    <input type="text" id="reg-address" required class="w-full p-2.5 rounded bg-[#012d24] border border-[#27A17E] text-white">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">رقم الهوية الوطنية (14 رقم)</label>
+                        <input type="text" id="reg-national-id" maxlength="14" minlength="14" required class="w-full p-2.5 rounded bg-[#012d24] border border-[#27A17E] text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">الوظيفة</label>
+                        <input type="text" id="reg-job" required class="w-full p-2.5 rounded bg-[#012d24] border border-[#27A17E] text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">المشروع المطلوب</label>
+                    <select id="reg-project-type" onchange="toggleOtherProject(this)" class="w-full p-2.5 rounded bg-[#012d24] border border-[#27A17E] text-white">
+                        <option value="منصة تعليمية">منصة تعليمية</option>
+                        <option value="تطبيق متجر إلكتروني">تطبيق متجر إلكتروني</option>
+                        <option value="اختبار اختراق وأمان">اختبار اختراق وأمان</option>
+                        <option value="غير ذلك">غير ذلك (يرجى التحديد)</option>
+                    </select>
+                </div>
+                <div id="other-project-container" class="hidden">
+                    <label class="block text-sm font-semibold mb-1">تحديد نوع المشروع</label>
+                    <input type="text" id="reg-project-other" class="w-full p-2.5 rounded bg-[#012d24] border border-[#27A17E] text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">كلمة المرور</label>
+                    <input type="password" id="reg-password" required class="w-full p-2.5 rounded bg-[#012d24] border border-[#27A17E] text-white">
+                </div>
+                <button type="submit" class="w-full btn-tam py-3 rounded-lg font-bold text-lg mt-2">إنشاء الحساب الآن</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PRINTABLE TEMPLATE -->
+    <div id="printable-area" class="hidden">
+        <div class="flex justify-between items-center border-b pb-4 mb-6">
+            <div>
+                <img src="https://i.ibb.co/kV8Fpyqp/logo-dark.png" alt="شعار تم" class="h-16">
+                <h2 class="text-xl font-bold mt-2">شركة تم للتكنولوجيا والأمن السيبراني</h2>
+            </div>
+            <div class="text-left text-sm">
+                <p><strong>التاريخ:</strong> <span id="print-date"></span></p>
+                <p><strong>الوقت:</strong> <span id="print-time"></span></p>
+                <p><strong>المعرف:</strong> #TAM-<span id="print-id"></span></p>
+            </div>
+        </div>
+        <div id="printable-content" class="space-y-4"></div>
+        <div class="border-t pt-4 text-center text-xs text-gray-600 mt-12">
+            جميع الحقوق محفوظة لدى شركة تم - مستند مصدق إلكترونياً.
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT & DATABASE CONNECTIVITY -->
+    <script>
+        const SHEETSON_SPREADSHEET_ID = 'HlUZiTjLO1sp-Ou0JbsluuQNAWUoMP2XOYcVw5n6OxoroGNPfVpIDZq3fF0';
+        const IMGBB_API_KEY = '36b0e2658ed6fad2ca48081442f1539b';
+        
+        let currentUser = null;
+        let currentTab = 'direct';
+        let pendingServiceRequest = null;
+        let currentActiveArticle = null;
+
+        // مصفوفات البيانات التي يتم تحميلها حصراً من قاعدة البيانات
+        let servicesData = { direct: [], installment: [], rent: [] };
+        let projectsList = [];
+        let partnersList = [];
+        let certsList = [];
+        let articlesList = [];
+        let adsList = [];
+        let booksList = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadUserSession();
+            fetchSheetsonData();
+        });
+
+        function scrollToSection(sectionId) {
+            const sec = document.getElementById(sectionId);
+            if (sec) {
+                if (sec.classList.contains('hidden')) {
+                    sec.classList.remove('hidden');
+                }
+                sec.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function closeOffersBar() {
+            document.getElementById('top-offers-bar').classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function copyDirectPriceLink() {
+            const link = window.location.origin + window.location.pathname + '#sec-services';
+            copyToClipboard(link);
+            alert("تم نسخ الرابط المباشر للأسعار بالجنيه المصري إلى الحافظة!");
+        }
+
+        function switchPriceTab(tab) {
+            currentTab = tab;
+            ['direct', 'installment', 'rent'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.className = "px-6 py-3 font-bold text-base sm:text-lg border-b-4 border-[#AFDFCD] text-[#AFDFCD] focus:outline-none price-text";
+                } else {
+                    btn.className = "px-6 py-3 font-bold text-base sm:text-lg text-gray-400 border-b-4 border-transparent hover:text-[#AFDFCD] focus:outline-none price-text";
+                }
+            });
+            renderServicesTable();
+        }
+
+        function renderServicesTable() {
+            const tbody = document.getElementById('services-table-body');
+            tbody.innerHTML = '';
+
+            const list = servicesData[currentTab] || [];
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-gray-400">لا توجد خدمات مضافة في قاعدة البيانات لهذه الفئة حالياً</td></tr>`;
+                return;
+            }
+
+            list.forEach(serv => {
+                const discountAmount = (serv.price * (serv.discount || 0)) / 100;
+                const finalPrice = serv.price - discountAmount;
+
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-[#27A17E]/30 hover:bg-[#27A17E]/10 transition";
+                tr.innerHTML = `
+                    <td class="py-4 px-4 font-bold text-white">${escapeHtml(serv.name)}</td>
+                    <td class="py-4 px-4 text-gray-300 price-font">${serv.price.toLocaleString()} ج.م</td>
+                    <td class="py-4 px-4 text-yellow-400 font-semibold price-font">${serv.discount || 0}%</td>
+                    <td class="py-4 px-4 text-[#AFDFCD] font-bold text-lg price-font">${finalPrice.toLocaleString()} ج.م</td>
+                    <td class="py-4 px-4 text-xs text-gray-300">${escapeHtml(serv.note || '-')}</td>
+                    <td class="py-4 px-4 text-center">
+                        <div class="flex justify-center gap-2">
+                            <button onclick="requestService('${escapeHtml(serv.name)}', ${finalPrice})" class="btn-tam px-3 py-1.5 rounded text-xs font-bold">طلب الخدمة</button>
+                            <button onclick="printQuotation('${escapeHtml(serv.name)}', ${serv.price}, ${serv.discount || 0}, ${finalPrice}, '${escapeHtml(serv.note || '')}')" class="bg-gray-700 text-white px-2.5 py-1.5 rounded text-xs hover:bg-gray-600" title="طباعة العرض"><i class="fa-solid fa-print"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderProjects() {
+            const grid = document.getElementById('projects-grid');
+            grid.innerHTML = '';
+            if (projectsList.length === 0) {
+                grid.innerHTML = `<p class="text-gray-400 text-sm text-center col-span-3">لا توجد مشاريع مضافة بقاعدة البيانات حالياً</p>`;
+                return;
+            }
+            projectsList.forEach(p => {
+                grid.innerHTML += `
+                    <div class="glass-card glass-card-hover overflow-hidden">
+                        <img src="${p.img}" alt="${p.name}" class="w-full h-48 object-cover">
+                        <div class="p-5 space-y-3">
+                            <h3 class="text-xl font-bold text-[#AFDFCD]">${escapeHtml(p.name)}</h3>
+                            <p class="text-xs text-gray-300">${escapeHtml(p.desc)}</p>
+                            <a href="${p.link || '#'}" target="_blank" rel="noopener" class="btn-tam px-4 py-2 rounded-lg text-xs font-bold inline-flex items-center gap-2">
+                                زيارة المشروع <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderPartners() {
+            const grid = document.getElementById('partners-grid');
+            grid.innerHTML = '';
+            if (partnersList.length === 0) {
+                grid.innerHTML = `<p class="text-gray-400 text-sm text-center col-span-5">لا يوجد شركاء مضافون بقاعدة البيانات حالياً</p>`;
+                return;
+            }
+            partnersList.forEach(partner => {
+                grid.innerHTML += `
+                    <div class="flex justify-center items-center p-2">
+                        <img src="${partner.logo}" alt="${partner.name}" title="${partner.name}" class="partner-logo max-h-14 w-auto object-contain">
+                    </div>
+                `;
+            });
+        }
+
+        function renderCertificates() {
+            const grid = document.getElementById('certs-grid');
+            grid.innerHTML = '';
+            if (certsList.length === 0) {
+                grid.innerHTML = `<p class="text-gray-400 text-sm text-center col-span-3">لا توجد شهادات مضافة بقاعدة البيانات حالياً</p>`;
+                return;
+            }
+            certsList.forEach(c => {
+                grid.innerHTML += `
+                    <div class="glass-card glass-card-hover p-5 text-center space-y-3">
+                        <img src="${c.img}" alt="${c.title}" class="w-full h-48 object-cover rounded-lg border border-[#27A17E]/30">
+                        <h3 class="text-lg font-bold text-[#AFDFCD]">${escapeHtml(c.title)}</h3>
+                        <p class="text-xs text-gray-300">الجهة: ${escapeHtml(c.issuer)}</p>
+                    </div>
+                `;
+            });
+        }
+
+        function renderArticles() {
+            const grid = document.getElementById('articles-grid');
+            grid.innerHTML = '';
+            if (articlesList.length === 0) {
+                grid.innerHTML = `<p class="text-gray-400 text-sm text-center col-span-3">لا توجد مقالات مضافة بقاعدة البيانات حالياً</p>`;
+                return;
+            }
+            articlesList.forEach(art => {
+                grid.innerHTML += `
+                    <div class="glass-card glass-card-hover overflow-hidden flex flex-col justify-between">
+                        <div>
+                            <img src="${art.image}" alt="${art.title}" class="w-full h-48 object-cover">
+                            <div class="p-5 space-y-3">
+                                <span class="text-xs text-[#AFDFCD] bg-[#013D31] px-2.5 py-1 rounded-full border border-[#27A17E]">${art.date}</span>
+                                <h3 class="text-lg font-bold text-white article-title-font">${escapeHtml(art.title)}</h3>
+                                <div class="text-xs text-gray-300 line-clamp-3 article-body-font">${art.content}</div>
+                            </div>
+                        </div>
+                        <div class="p-5 pt-0">
+                            <button onclick="openSingleArticle('${art.id}')" class="w-full btn-tam py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2">
+                                قراءة المقال بالكامل <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openSingleArticle(articleId) {
+            const art = articlesList.find(a => a.id === articleId);
+            if (!art) return;
+
+            currentActiveArticle = art;
+            const container = document.getElementById('single-article-content');
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <img src="${art.image}" class="w-full h-72 object-cover rounded-xl border border-[#27A17E]/40">
+                    <div class="flex items-center gap-4 text-xs text-[#AFDFCD]">
+                        <span><i class="fa-solid fa-user"></i> ${art.author}</span>
+                        <span><i class="fa-solid fa-calendar"></i> ${art.date}</span>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-[#AFDFCD] article-title-font">${escapeHtml(art.title)}</h2>
+                    <div class="text-gray-100 text-base leading-relaxed pt-2 space-y-4 article-body-font">${art.content}</div>
+                </div>
+            `;
+
+            scrollToSection('sec-single-article');
+        }
+
+        function renderBooks() {
+            const grid = document.getElementById('books-grid');
+            grid.innerHTML = '';
+            if (booksList.length === 0) {
+                grid.innerHTML = `<p class="text-gray-400 text-sm text-center col-span-2">لا توجد كتيبات مضافة بقاعدة البيانات حالياً</p>`;
+                return;
+            }
+            booksList.forEach(b => {
+                grid.innerHTML += `
+                    <div class="glass-card p-6 flex justify-between items-center gap-4">
+                        <div class="space-y-1">
+                            <h3 class="text-base font-bold text-[#AFDFCD]">${escapeHtml(b.title)}</h3>
+                            <p class="text-xs text-gray-300">${escapeHtml(b.desc)}</p>
+                        </div>
+                        <button onclick="downloadPdfDirect('${b.link}', '${escapeHtml(b.title)}.pdf')" class="btn-tam px-4 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2 shrink-0">
+                            <i class="fa-solid fa-file-pdf"></i> تحميل PDF
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function downloadPdfDirect(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename || 'tam-document.pdf';
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function requestService(serviceName, price) {
+            if (!currentUser) {
+                pendingServiceRequest = { serviceName, price };
+                alert("يرجى إنشاء حساب أولاً أو تسجيل الدخول لطلب الخدمة");
+                openModal('login-modal');
+                return;
+            }
+            alert(`تم تسجيل طلبك لخدمة "${serviceName}" بقيمة ${price.toLocaleString()} ج.م بنجاح! سيتواصل معك فريق تم.`);
+        }
+
+        function printQuotation(name, price, discount, final, note) {
+            const now = new Date();
+            document.getElementById('print-date').innerText = now.toLocaleDateString('ar-EG');
+            document.getElementById('print-time').innerText = now.toLocaleTimeString('ar-EG');
+            document.getElementById('print-id').innerText = Math.floor(100000 + Math.random() * 900000);
+            
+            const printableContent = document.getElementById('printable-content');
+            printableContent.innerHTML = `
+                <h3 class="text-2xl font-bold text-center mb-6">عرض سعر رسمي للخدمة (بالجنيه المصري)</h3>
+                <div class="space-y-4 mb-6">
+                    <p><strong>الخدمة المطلوبة:</strong> ${name}</p>
+                    <p><strong>السعر الأساسي:</strong> ${price.toLocaleString()} ج.م</p>
+                    <p><strong>نسبة الخصم:</strong> ${discount}%</p>
+                    <p class="text-xl font-bold text-green-700"><strong>السعر النهائي بعد الخصم:</strong> ${final.toLocaleString()} ج.م</p>
+                    <p><strong>ملاحظات وتنبيهات الخدمة:</strong> ${note || 'لا توجد ملاحظات إضافية'}</p>
+                </div>
+            `;
+
+            const printElem = document.getElementById('printable-area');
+            printElem.classList.remove('hidden');
+            window.print();
+            printElem.classList.add('hidden');
+        }
+
+        function printCurrentArticle() {
+            if (!currentActiveArticle) return;
+            const now = new Date();
+            document.getElementById('print-date').innerText = now.toLocaleDateString('ar-EG');
+            document.getElementById('print-time').innerText = now.toLocaleTimeString('ar-EG');
+            document.getElementById('print-id').innerText = currentActiveArticle.id;
+
+            const printableContent = document.getElementById('printable-content');
+            printableContent.innerHTML = `
+                <h2 class="text-2xl font-bold mb-2">${currentActiveArticle.title}</h2>
+                <p class="text-xs text-gray-500 mb-4">بقلم: ${currentActiveArticle.author} | بتاريخ: ${currentActiveArticle.date}</p>
+                <img src="${currentActiveArticle.image}" class="w-full h-64 object-cover mb-4 rounded">
+                <div class="text-base leading-relaxed">${currentActiveArticle.content}</div>
+            `;
+
+            const printElem = document.getElementById('printable-area');
+            printElem.classList.remove('hidden');
+            window.print();
+            printElem.classList.add('hidden');
+        }
+
+        function copyArticleShareLink() {
+            if (!currentActiveArticle) return;
+            const link = window.location.origin + window.location.pathname + `#article-${currentActiveArticle.id}`;
+            copyToClipboard(link);
+            alert("تم نسخ الرابط الفريد للمقال بنجاح لمشاركته!");
+        }
+
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = (hash << 5) - hash + char;
+                hash |= 0;
+            }
+            return 'ENC_' + Math.abs(hash).toString(16);
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const fullname = document.getElementById('reg-fullname').value;
+            const email = document.getElementById('reg-email').value;
+            const phone = document.getElementById('reg-phone').value;
+            const address = document.getElementById('reg-address').value;
+            const nationalId = document.getElementById('reg-national-id').value;
+            const job = document.getElementById('reg-job').value;
+            let project = document.getElementById('reg-project-type').value;
+            if (project === 'غير ذلك') {
+                project = document.getElementById('reg-project-other').value || 'غير محدد';
+            }
+            const password = document.getElementById('reg-password').value;
+
+            const userObj = {
+                fullname,
+                email,
+                phone,
+                address,
+                nationalId: simpleHash(nationalId),
+                rawNationalId: nationalId,
+                job,
+                project,
+                password: simpleHash(password),
+                isAdmin: email.includes('admin') || email.includes('tam')
+            };
+
+            currentUser = userObj;
+            localStorage.setItem('tam_user', JSON.stringify(userObj));
+
+            saveToSheetson('users', {
+                Fullname: fullname,
+                Email: email,
+                Phone: phone,
+                NationalId: simpleHash(nationalId),
+                Job: job,
+                Project: project
+            });
+
+            updateUIForAuth();
+            closeModal('register-modal');
+            alert("تم إنشاء حسابك بنجاح في شركة تم!");
+
+            if (pendingServiceRequest) {
+                requestService(pendingServiceRequest.serviceName, pendingServiceRequest.price);
+                pendingServiceRequest = null;
+            }
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('login-identifier').value;
+            const stored = localStorage.getItem('tam_user');
+            let user = stored ? JSON.parse(stored) : null;
+
+            if (!user) {
+                user = {
+                    fullname: "مستخدم تم",
+                    email: identifier.includes('@') ? identifier : "user@tam.sa",
+                    phone: identifier,
+                    nationalId: identifier,
+                    rawNationalId: "12345678901234",
+                    job: "عميل",
+                    isAdmin: identifier.toLowerCase().includes('admin')
+                };
+            }
+
+            currentUser = user;
+            localStorage.setItem('tam_user', JSON.stringify(currentUser));
+
+            updateUIForAuth();
+            closeModal('login-modal');
+            alert(`أهلاً بك مجدداً، ${currentUser.fullname}`);
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('tam_user');
+            updateUIForAuth();
+            scrollToSection('sec-home');
+        }
+
+        function updateUIForAuth() {
+            const navAuth = document.getElementById('nav-auth-container');
+            const userInfo = document.getElementById('user-info');
+            const mobileAuth = document.getElementById('mobile-auth-btns');
+            const mobileUser = document.getElementById('mobile-user-info');
+
+            if (currentUser) {
+                if (navAuth) navAuth.classList.add('hidden');
+                if (userInfo) userInfo.classList.remove('hidden');
+                document.getElementById('user-display-name').innerText = currentUser.fullname;
+
+                if (mobileAuth) mobileAuth.classList.add('hidden');
+                if (mobileUser) mobileUser.classList.remove('hidden');
+                document.getElementById('mobile-user-name').innerText = currentUser.fullname;
+
+                if (currentUser.isAdmin) {
+                    document.getElementById('nav-admin-btn').classList.remove('hidden');
+                    document.getElementById('mobile-nav-admin-btn').classList.remove('hidden');
+                }
+            } else {
+                if (navAuth) navAuth.classList.remove('hidden');
+                if (userInfo) userInfo.classList.add('hidden');
+                if (mobileAuth) mobileAuth.classList.remove('hidden');
+                if (mobileUser) mobileUser.classList.add('hidden');
+                document.getElementById('nav-admin-btn').classList.add('hidden');
+                document.getElementById('mobile-nav-admin-btn').classList.add('hidden');
+            }
+        }
+
+        function loadUserSession() {
+            const stored = localStorage.getItem('tam_user');
+            if (stored) {
+                currentUser = JSON.parse(stored);
+                updateUIForAuth();
+            }
+        }
+
+        function fillJoinFormWithUserData() {
+            if (!currentUser) return;
+            document.getElementById('join-fullname').value = currentUser.fullname || '';
+            document.getElementById('join-email').value = currentUser.email || '';
+            document.getElementById('join-phone').value = currentUser.phone || '';
+            document.getElementById('join-national-id').value = currentUser.rawNationalId || '12345678901234';
+            document.getElementById('join-job').value = currentUser.job || '';
+        }
+
+        async function handleJoinSubmit(e) {
+            e.preventDefault();
+            if (!currentUser) {
+                alert("يلزم إنشاء حساب مسبقاً قبل التقديم!");
+                return;
+            }
+
+            const fileInput = document.getElementById('join-file');
+            let fileUrl = "";
+
+            if (fileInput.files.length > 0) {
+                fileUrl = await uploadToImgBB(fileInput.files[0]);
+            }
+
+            const joinData = {
+                Fullname: document.getElementById('join-fullname').value,
+                Email: document.getElementById('join-email').value,
+                Phone: document.getElementById('join-phone').value,
+                NationalId: document.getElementById('join-national-id').value,
+                Job: document.getElementById('join-job').value,
+                Skills: document.getElementById('join-skills').value,
+                CertificateUrl: fileUrl || "لم يتم الرفع"
+            };
+
+            saveToSheetson('join_requests', joinData);
+            alert("تم إرسال طلب انضمامك لفريق تم بنجاح مع مرفقاتك!");
+            e.target.reset();
+        }
+
+        async function uploadToImgBB(file) {
+            try {
+                const formData = new FormData();
+                formData.append('image', file);
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    return data.data.url;
+                }
+            } catch (err) {
+                console.error("خطأ في رفع الصورة لـ ImgBB:", err);
+            }
+            return "";
+        }
+
+        async function handleAddCertificate(e) {
+            e.preventDefault();
+            const title = document.getElementById('admin-cert-title').value;
+            const issuer = document.getElementById('admin-cert-issuer').value;
+            const imgInput = document.getElementById('admin-cert-img');
+
+            let imgUrl = "";
+            if (imgInput.files.length > 0) {
+                imgUrl = await uploadToImgBB(imgInput.files[0]);
+            }
+
+            const newCert = { id: Date.now(), title, issuer, img: imgUrl };
+            certsList.push(newCert);
+
+            saveToSheetson('certificates', { Title: title, Issuer: issuer, ImageUrl: imgUrl });
+            renderCertificates();
+            updateAdminStats();
+            alert("تم رفع الشهادة/الترخيص لقاعدة البيانات بنجاح!");
+            e.target.reset();
+        }
+
+        async function handleAddProject(e) {
+            e.preventDefault();
+            const name = document.getElementById('admin-proj-name').value;
+            const desc = document.getElementById('admin-proj-desc').value;
+            const link = document.getElementById('admin-proj-link').value;
+            const imgInput = document.getElementById('admin-proj-img');
+
+            let imgUrl = "https://via.placeholder.com/400x250/27A17E/FFFFFF?text=TAM+Project";
+            if (imgInput.files.length > 0) {
+                imgUrl = await uploadToImgBB(imgInput.files[0]);
+            }
+
+            const newProj = { id: Date.now(), name, desc, img: imgUrl, link };
+            projectsList.unshift(newProj);
+
+            saveToSheetson('projects', { Name: name, Description: desc, ImageUrl: imgUrl, DirectLink: link });
+            renderProjects();
+            updateAdminStats();
+            alert("تم نشر العمل في معرض أعمالنا بنجاح!");
+            e.target.reset();
+        }
+
+        function handleAddService(e) {
+            e.preventDefault();
+            const cat = document.getElementById('admin-serv-category').value;
+            const name = document.getElementById('admin-serv-name').value;
+            const price = parseFloat(document.getElementById('admin-serv-price').value);
+            const discount = parseFloat(document.getElementById('admin-serv-discount').value) || 0;
+
+            const newServ = { id: Date.now(), name, price, discount, note: '' };
+            servicesData[cat].push(newServ);
+
+            saveToSheetson('services', { Category: cat, Name: name, Price: price, Discount: discount });
+            renderServicesTable();
+            updateAdminStats();
+            alert("تم إضافة الخدمة ونشرها بنجاح!");
+            e.target.reset();
+        }
+
+        function updateAdminStats() {
+            document.getElementById('stat-services-count').innerText = servicesData.direct.length + servicesData.installment.length + servicesData.rent.length;
+            document.getElementById('stat-projects-count').innerText = projectsList.length;
+            document.getElementById('stat-certs-count').innerText = certsList.length;
+            document.getElementById('stat-ads-count').innerText = adsList.length;
+        }
+
+        function refreshAdminData() {
+            fetchSheetsonData();
+            alert("تم تحديث الاتصال المباشر بقاعدة البيانات!");
+        }
+
+        async function saveToSheetson(sheetName, rowData) {
+            try {
+                const url = `https://api.sheetson.com/v2/sheets/${sheetName}`;
+                await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${SHEETSON_SPREADSHEET_ID}`,
+                        'Content-Type': 'application/json',
+                        'X-Spreadsheet-Id': SHEETSON_SPREADSHEET_ID
+                    },
+                    body: JSON.stringify(rowData)
+                });
+            } catch (err) {
+                console.log("حفظ مباشر بقاعدة البيانات:", err);
+            }
+        }
+
+        async function fetchSheetsonData() {
+            try {
+                // جلب الخدمات
+                const servRes = await fetch(`https://api.sheetson.com/v2/sheets/services?spreadsheetId=${SHEETSON_SPREADSHEET_ID}`);
+                const servData = await servRes.json();
+                if (servData && servData.results) {
+                    servData.results.forEach(row => {
+                        if (row.Category && servicesData[row.Category]) {
+                            servicesData[row.Category].push({
+                                id: Date.now(),
+                                name: row.Name,
+                                price: parseFloat(row.Price),
+                                discount: parseFloat(row.Discount || 0),
+                                note: row.Note
+                            });
+                        }
+                    });
+                }
+
+                // جلب الأعمال
+                const projRes = await fetch(`https://api.sheetson.com/v2/sheets/projects?spreadsheetId=${SHEETSON_SPREADSHEET_ID}`);
+                const projData = await projRes.json();
+                if (projData && projData.results) {
+                    projectsList = projData.results.map(row => ({
+                        id: Date.now(),
+                        name: row.Name,
+                        desc: row.Description,
+                        img: row.ImageUrl,
+                        link: row.DirectLink
+                    }));
+                }
+
+                // جلب الشهادات والتراخيص
+                const certRes = await fetch(`https://api.sheetson.com/v2/sheets/certificates?spreadsheetId=${SHEETSON_SPREADSHEET_ID}`);
+                const certData = await certRes.json();
+                if (certData && certData.results) {
+                    certsList = certData.results.map(row => ({
+                        id: Date.now(),
+                        title: row.Title,
+                        issuer: row.Issuer,
+                        img: row.ImageUrl
+                    }));
+                }
+
+                renderServicesTable();
+                renderProjects();
+                renderPartners();
+                renderCertificates();
+                renderArticles();
+                renderBooks();
+                updateAdminStats();
+            } catch (e) {
+                console.log("جاري الاتصال المباشر بقاعدة البيانات...");
+                renderServicesTable();
+                renderProjects();
+                renderPartners();
+                renderCertificates();
+                renderArticles();
+                renderBooks();
+            }
+        }
+
+        function copyToClipboard(text) {
+            const tempInput = document.createElement("input");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
+
