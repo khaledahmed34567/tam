@@ -124,6 +124,9 @@ table.rows tr:last-child td{border-bottom:none;}
     <button class="navbtn" data-tab="certificates">الشهادات</button>
     <button class="navbtn" data-tab="coupons">أكواد الخصم</button>
     <button class="navbtn" data-tab="users">المستخدمون</button>
+    <button class="navbtn" data-tab="announcements">الإعلانات</button>
+    <button class="navbtn" data-tab="livesessions">الجلسات المباشرة</button>
+    <button class="navbtn" data-tab="questions">أسئلة الطلاب</button>
   </aside>
   <main class="content" id="content"></main>
 </div>
@@ -234,6 +237,9 @@ async function loadTab(){
     else if (currentTab==='certificates') await renderCertificatesTab();
     else if (currentTab==='coupons') await renderCouponsTab();
     else if (currentTab==='users') await renderUsersTab();
+    else if (currentTab==='announcements') await renderAnnouncementsTab();
+    else if (currentTab==='livesessions') await renderLiveSessionsTab();
+    else if (currentTab==='questions') await renderQuestionsTab();
   } catch(e){ content.innerHTML = `<div class="empty">${escapeHtml(friendlyError(e))}</div>`; }
 }
 
@@ -938,6 +944,181 @@ async function renderStudentDetail(uid){
         `).join('') : `<tr><td colspan="3" class="empty">لا توجد شهادات بعد</td></tr>`}</tbody></table></div>
       </div>`;
   } catch(e){ content.innerHTML = `<div class="empty">${escapeHtml(friendlyError(e))}</div>`; }
+}
+
+/* =====================================================================
+   ANNOUNCEMENTS (feature 1 — home page banner)
+   ===================================================================== */
+async function renderAnnouncementsTab(){
+  const items = await DB.listAll('Announcements');
+  window._announceCache = items;
+  content.innerHTML = `
+    <div class="content-head"><h1>${icon('book')} الإعلانات</h1></div>
+    <div class="panel">
+      <h3 id="annFormTitle">إضافة إعلان جديد</h3>
+      <input type="hidden" id="annEditId">
+      <div class="field"><label>العنوان *</label><input type="text" id="annTitle"></div>
+      <div class="field"><label>النص *</label><textarea id="annMessage"></textarea></div>
+      <div class="field"><label>رابط (اختياري)</label><input type="url" id="annLink" placeholder="https://..."></div>
+      <div class="field"><label>الحالة</label><select id="annActive"><option value="TRUE">مفعّل — يظهر للطلاب</option><option value="FALSE">متوقف</option></select></div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-primary" id="annSaveBtn">${icon('plus')} حفظ</button>
+        <button class="btn btn-ghost" id="annCancelBtn" style="display:none;">إلغاء التعديل</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="table-wrap"><table class="rows"><thead><tr><th>العنوان</th><th>النص</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>${items.length ? items.map(a=>`
+        <tr>
+          <td>${escapeHtml(a.title_ar||'')}</td>
+          <td style="font-size:12.5px; color:var(--ink-soft);">${escapeHtml((a.message_ar||'').slice(0,50))}</td>
+          <td><span class="badge ${a.active==='TRUE'?'approved':'rejected'}">${a.active==='TRUE'?'مفعّل':'متوقف'}</span></td>
+          <td class="row-actions">
+            <button class="btn btn-ghost btn-sm" onclick="editAnnouncement('${a.id}')">${icon('edit')}</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement('${a.id}')">${icon('trash')}</button>
+          </td>
+        </tr>`).join('') : `<tr><td colspan="4" class="empty">لا توجد إعلانات بعد</td></tr>`}</tbody></table></div>
+    </div>`;
+  document.getElementById('annSaveBtn').addEventListener('click', saveAnnouncement);
+  document.getElementById('annCancelBtn').addEventListener('click', ()=>renderAnnouncementsTab());
+}
+async function saveAnnouncement(){
+  const btn = document.getElementById('annSaveBtn');
+  const title_ar = document.getElementById('annTitle').value.trim();
+  const message_ar = document.getElementById('annMessage').value.trim();
+  if (!title_ar || !message_ar){ toast('اكتب العنوان والنص'); return; }
+  btn.disabled = true; btn.textContent = '...جارٍ الحفظ';
+  try {
+    const editId = document.getElementById('annEditId').value;
+    const data = { title_ar, message_ar, link_url: document.getElementById('annLink').value.trim(), active: document.getElementById('annActive').value };
+    if (editId) await DB.update('Announcements', editId, data);
+    else await DB.create('Announcements', data);
+    toast('تم الحفظ بنجاح'); renderAnnouncementsTab();
+  } catch(e){ toast(friendlyError(e)); btn.disabled=false; btn.innerHTML = `${icon('plus')} حفظ`; }
+}
+function editAnnouncement(id){
+  const a = (window._announceCache||[]).find(x=>x.id===id); if (!a) return;
+  document.getElementById('annFormTitle').textContent = 'تعديل الإعلان';
+  document.getElementById('annEditId').value = id;
+  document.getElementById('annTitle').value = a.title_ar||'';
+  document.getElementById('annMessage').value = a.message_ar||'';
+  document.getElementById('annLink').value = a.link_url||'';
+  document.getElementById('annActive').value = a.active||'TRUE';
+  document.getElementById('annCancelBtn').style.display='inline-flex';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+async function deleteAnnouncement(id){
+  if (!confirm('حذف هذا الإعلان؟')) return;
+  try { await DB.remove('Announcements', id); toast('تم الحذف'); renderAnnouncementsTab(); } catch(e){ toast(friendlyError(e)); }
+}
+
+/* =====================================================================
+   LIVE SESSIONS (feature 2 — schedule shown on the home page)
+   ===================================================================== */
+async function renderLiveSessionsTab(){
+  const items = await DB.listAll('LiveSessions');
+  window._liveCache = items;
+  content.innerHTML = `
+    <div class="content-head"><h1>${icon('book')} الجلسات المباشرة</h1></div>
+    <div class="panel">
+      <h3 id="liveFormTitle">إضافة جلسة جديدة</h3>
+      <input type="hidden" id="liveEditId">
+      <div class="field"><label>عنوان الجلسة *</label><input type="text" id="liveTitle"></div>
+      <div class="field"><label>الوصف</label><textarea id="liveDesc"></textarea></div>
+      <div class="field-row">
+        <div class="field"><label>الموعد *</label><input type="datetime-local" id="liveTime"></div>
+        <div class="field"><label>رابط الانضمام</label><input type="url" id="liveUrl" placeholder="https://..."></div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-primary" id="liveSaveBtn">${icon('plus')} حفظ</button>
+        <button class="btn btn-ghost" id="liveCancelBtn" style="display:none;">إلغاء التعديل</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="table-wrap"><table class="rows"><thead><tr><th>العنوان</th><th>الموعد</th><th></th></tr></thead>
+      <tbody>${items.length ? items.sort((a,b)=>(a.start_time||'').localeCompare(b.start_time||'')).map(s=>`
+        <tr>
+          <td>${escapeHtml(s.title_ar||'')}</td>
+          <td style="font-size:12.5px; color:var(--ink-soft);">${s.start_time ? new Date(s.start_time).toLocaleString('ar-EG') : '—'}</td>
+          <td class="row-actions">
+            <button class="btn btn-ghost btn-sm" onclick="editLiveSession('${s.id}')">${icon('edit')}</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteLiveSession('${s.id}')">${icon('trash')}</button>
+          </td>
+        </tr>`).join('') : `<tr><td colspan="3" class="empty">لا توجد جلسات بعد</td></tr>`}</tbody></table></div>
+    </div>`;
+  document.getElementById('liveSaveBtn').addEventListener('click', saveLiveSession);
+  document.getElementById('liveCancelBtn').addEventListener('click', ()=>renderLiveSessionsTab());
+}
+async function saveLiveSession(){
+  const btn = document.getElementById('liveSaveBtn');
+  const title_ar = document.getElementById('liveTitle').value.trim();
+  const start_time_local = document.getElementById('liveTime').value;
+  if (!title_ar || !start_time_local){ toast('اكتب العنوان وحدد الموعد'); return; }
+  btn.disabled = true; btn.textContent = '...جارٍ الحفظ';
+  try {
+    const editId = document.getElementById('liveEditId').value;
+    const data = {
+      title_ar, description_ar: document.getElementById('liveDesc').value.trim(),
+      start_time: new Date(start_time_local).toISOString(),
+      meeting_url: document.getElementById('liveUrl').value.trim(),
+    };
+    if (editId) await DB.update('LiveSessions', editId, data);
+    else await DB.create('LiveSessions', data);
+    toast('تم الحفظ بنجاح'); renderLiveSessionsTab();
+  } catch(e){ toast(friendlyError(e)); btn.disabled=false; btn.innerHTML = `${icon('plus')} حفظ`; }
+}
+function editLiveSession(id){
+  const s = (window._liveCache||[]).find(x=>x.id===id); if (!s) return;
+  document.getElementById('liveFormTitle').textContent = 'تعديل الجلسة';
+  document.getElementById('liveEditId').value = id;
+  document.getElementById('liveTitle').value = s.title_ar||'';
+  document.getElementById('liveDesc').value = s.description_ar||'';
+  if (s.start_time){
+    const d = new Date(s.start_time);
+    const pad = n => String(n).padStart(2,'0');
+    document.getElementById('liveTime').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  document.getElementById('liveUrl').value = s.meeting_url||'';
+  document.getElementById('liveCancelBtn').style.display='inline-flex';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+async function deleteLiveSession(id){
+  if (!confirm('حذف هذه الجلسة؟')) return;
+  try { await DB.remove('LiveSessions', id); toast('تم الحذف'); renderLiveSessionsTab(); } catch(e){ toast(friendlyError(e)); }
+}
+
+/* =====================================================================
+   QUESTIONS (feature 4 — student Q&A per lecture, admin answers)
+   ===================================================================== */
+async function renderQuestionsTab(){
+  const [questions, lectures] = await Promise.all([DB.listAll('Questions'), DB.listAll('Lectures')]);
+  content.innerHTML = `
+    <div class="content-head"><h1>${icon('book')} أسئلة الطلاب</h1></div>
+    <div class="panel">
+      ${questions.length ? questions.sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).map(q=>`
+        <div class="qblock">
+          <div class="qhead">
+            <div>
+              <strong style="font-size:13.5px;">${escapeHtml(q.user_name||'طالب')}</strong>
+              <span style="font-size:11.5px; color:var(--ink-soft);"> · ${escapeHtml((lectures.find(l=>l.id===q.lecture_id)||{}).title_ar||'محاضرة')} · ${escapeHtml((q.created_at||'').slice(0,10))}</span>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="deleteQuestion('${q.id}')">${icon('trash')}</button>
+          </div>
+          <p style="font-size:13.5px; margin-bottom:10px;">${escapeHtml(q.question||'')}</p>
+          <div class="field"><textarea id="ans-${q.id}" placeholder="اكتب الرد هنا...">${escapeHtml(q.answer||'')}</textarea></div>
+          <button class="btn btn-primary btn-sm" onclick="answerQuestion('${q.id}')">${icon('check')} حفظ الرد</button>
+          ${q.answer ? `<span class="badge approved" style="margin-right:8px;">تم الرد</span>` : `<span class="badge pending" style="margin-right:8px;">بانتظار الرد</span>`}
+        </div>`).join('') : `<div class="empty">لا توجد أسئلة بعد</div>`}
+    </div>`;
+}
+async function answerQuestion(id){
+  const answer = document.getElementById(`ans-${id}`).value.trim();
+  if (!answer){ toast('اكتب الرد أولًا'); return; }
+  try { await DB.update('Questions', id, { answer, answered:'TRUE' }); toast('تم حفظ الرد'); renderQuestionsTab(); } catch(e){ toast(friendlyError(e)); }
+}
+async function deleteQuestion(id){
+  if (!confirm('حذف هذا السؤال؟')) return;
+  try { await DB.remove('Questions', id); toast('تم الحذف'); renderQuestionsTab(); } catch(e){ toast(friendlyError(e)); }
 }
 
 /* =====================================================================
