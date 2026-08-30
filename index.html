@@ -51,6 +51,13 @@ label,.sub,.eyebrow{font-family:'AppSub','AppBody',sans-serif;}
   .sidebar .brand{display:none;}
   .navbtn{flex-shrink:0;}
   .content{padding:18px 16px 50px;}
+  .panel{padding:16px;}
+  .table-wrap{margin:0 -16px; padding:0 16px;}
+  .btn{min-height:44px;}
+  .btn-sm{min-height:38px; padding:0 14px;}
+  .content-head h1{font-size:19px;}
+  .field-row{flex-direction:column;}
+  .field-row .field{min-width:0;}
 }
 
 .btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:40px; padding:0 18px; border-radius:100px; border:1px solid transparent; font-size:14px; font-weight:590; cursor:pointer; transition:transform .12s ease, opacity .15s ease, background .15s ease; white-space:nowrap; font-family:inherit;}
@@ -77,10 +84,11 @@ label,.sub,.eyebrow{font-family:'AppSub','AppBody',sans-serif;}
 .hint{font-size:11.5px; color:var(--ink-soft); margin-top:4px;}
 img.preview{width:70px; height:70px; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--line); margin-top:6px;}
 
-table.rows{width:100%; border-collapse:collapse;}
-table.rows th{text-align:right; font-size:11.5px; color:var(--ink-soft); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--line);}
+table.rows{width:100%; border-collapse:collapse; min-width:560px;}
+table.rows th{text-align:right; font-size:11.5px; color:var(--ink-soft); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap;}
 table.rows td{padding:10px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle;}
 table.rows tr:last-child td{border-bottom:none;}
+.table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 -22px; padding:0 22px;}
 .badge{display:inline-flex; padding:4px 10px; border-radius:100px; font-size:11.5px; font-weight:600;}
 .badge.pending{background:var(--gold-soft); color:#8a6d3b;}
 .badge.approved,.badge.issued{background:var(--emerald-soft); color:var(--emerald);}
@@ -248,7 +256,7 @@ async function renderTracksTab(){
       </div>
     </div>
     <div class="panel">
-      <table class="rows"><thead><tr><th></th><th>الاسم</th><th>الوصف</th><th></th></tr></thead>
+      <div class="table-wrap"><table class="rows"><thead><tr><th></th><th>الاسم</th><th>الوصف</th><th></th></tr></thead>
       <tbody id="tracksRows">${tracks.length ? tracks.map(t=>`
         <tr>
           <td>${t.icon_url?`<img class="thumb-sm" src="${escapeHtml(t.icon_url)}">`:''}</td>
@@ -258,7 +266,7 @@ async function renderTracksTab(){
             <button class="btn btn-ghost btn-sm" onclick="editTrack('${t.id}')">${icon('edit')}</button>
             <button class="btn btn-danger btn-sm" onclick="deleteTrack('${t.id}')">${icon('trash')}</button>
           </td>
-        </tr>`).join('') : `<tr><td colspan="4" class="empty">لا توجد مسارات بعد</td></tr>`}</tbody></table>
+        </tr>`).join('') : `<tr><td colspan="4" class="empty">لا توجد مسارات بعد</td></tr>`}</tbody></table></div>
     </div>`;
   document.getElementById('trackSaveBtn').addEventListener('click', saveTrack);
   document.getElementById('trackCancelBtn').addEventListener('click', ()=>renderTracksTab());
@@ -321,7 +329,7 @@ async function renderCoursesTab(){
       </div>
     </div>
     <div class="panel">
-      <table class="rows"><thead><tr><th></th><th>العنوان</th><th>المسار</th><th>المحاضر</th><th></th></tr></thead>
+      <div class="table-wrap"><table class="rows"><thead><tr><th></th><th>العنوان</th><th>المسار</th><th>المحاضر</th><th></th></tr></thead>
       <tbody>${courses.length ? courses.map(c=>`
         <tr>
           <td>${c.cover_image_url?`<img class="thumb-sm" src="${escapeHtml(c.cover_image_url)}">`:''}</td>
@@ -332,7 +340,7 @@ async function renderCoursesTab(){
             <button class="btn btn-ghost btn-sm" onclick="editCourse('${c.id}')">${icon('edit')}</button>
             <button class="btn btn-danger btn-sm" onclick="deleteCourse('${c.id}')">${icon('trash')}</button>
           </td>
-        </tr>`).join('') : `<tr><td colspan="5" class="empty">لا توجد دورات بعد</td></tr>`}</tbody></table>
+        </tr>`).join('') : `<tr><td colspan="5" class="empty">لا توجد دورات بعد</td></tr>`}</tbody></table></div>
     </div>`;
   document.getElementById('courseSaveBtn').addEventListener('click', saveCourse);
   document.getElementById('courseCancelBtn').addEventListener('click', ()=>renderCoursesTab());
@@ -396,7 +404,7 @@ async function renderLecturesTab(){
       </div>
     </div>
     <div class="panel">
-      <table class="rows"><thead><tr><th>#</th><th>العنوان</th><th>الدورة</th><th></th></tr></thead>
+      <div class="table-wrap"><table class="rows"><thead><tr><th>#</th><th>العنوان</th><th>الدورة</th><th></th></tr></thead>
       <tbody>${lectures.length ? lectures.sort((a,b)=>(a.order||0)-(b.order||0)).map(l=>`
         <tr>
           <td>${l.order||''}</td>
@@ -406,7 +414,7 @@ async function renderLecturesTab(){
             <button class="btn btn-ghost btn-sm" onclick="editLecture('${l.id}')">${icon('edit')}</button>
             <button class="btn btn-danger btn-sm" onclick="deleteLecture('${l.id}')">${icon('trash')}</button>
           </td>
-        </tr>`).join('') : `<tr><td colspan="4" class="empty">لا توجد محاضرات بعد</td></tr>`}</tbody></table>
+        </tr>`).join('') : `<tr><td colspan="4" class="empty">لا توجد محاضرات بعد</td></tr>`}</tbody></table></div>
     </div>`;
   document.getElementById('lectureSaveBtn').addEventListener('click', saveLecture);
   document.getElementById('lectureCancelBtn').addEventListener('click', ()=>renderLecturesTab());
@@ -501,7 +509,7 @@ async function renderTasksTab(){
       </div>
     </div>
     <div class="panel">
-      <table class="rows"><thead><tr><th>#</th><th>العنوان</th><th>النوع</th><th>المحاضرة</th><th></th></tr></thead>
+      <div class="table-wrap"><table class="rows"><thead><tr><th>#</th><th>العنوان</th><th>النوع</th><th>المحاضرة</th><th></th></tr></thead>
       <tbody>${tasks.length ? tasks.sort((a,b)=>(a.order||0)-(b.order||0)).map(t=>`
         <tr>
           <td>${t.order||''}</td>
@@ -512,7 +520,7 @@ async function renderTasksTab(){
             <button class="btn btn-ghost btn-sm" onclick="editTask('${t.id}')">${icon('edit')}</button>
             <button class="btn btn-danger btn-sm" onclick="deleteTask('${t.id}')">${icon('trash')}</button>
           </td>
-        </tr>`).join('') : `<tr><td colspan="5" class="empty">لا توجد مهام بعد</td></tr>`}</tbody></table>
+        </tr>`).join('') : `<tr><td colspan="5" class="empty">لا توجد مهام بعد</td></tr>`}</tbody></table></div>
     </div>`;
   onTaskTypeChange();
   document.getElementById('taskSaveBtn').addEventListener('click', saveTask);
@@ -647,7 +655,7 @@ async function renderPaymentsTab(){
   content.innerHTML = `
     <div class="content-head"><h1>${icon('book')} المدفوعات</h1></div>
     <div class="panel">
-      <table class="rows"><thead><tr><th>الإثبات</th><th>البريد</th><th>الطريقة</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead>
+      <div class="table-wrap"><table class="rows"><thead><tr><th>الإثبات</th><th>البريد</th><th>الطريقة</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead>
       <tbody>${payments.length ? payments.sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).map(p=>`
         <tr>
           <td>${p.proof_url?`<a href="${escapeHtml(p.proof_url)}" target="_blank"><img class="thumb-sm" src="${escapeHtml(p.proof_url)}"></a>`:'—'}</td>
@@ -657,10 +665,15 @@ async function renderPaymentsTab(){
           <td><span class="badge ${p.status||'pending'}">${p.status==='approved'?'مقبول':p.status==='rejected'?'مرفوض':'قيد المراجعة'}</span></td>
           <td class="row-actions">
             <button class="btn btn-primary btn-sm" onclick="setPaymentStatus('${p.id}','approved')">${icon('check')} قبول</button>
-            <button class="btn btn-danger btn-sm" onclick="setPaymentStatus('${p.id}','rejected')">رفض</button>
+            <button class="btn btn-ghost btn-sm" onclick="setPaymentStatus('${p.id}','rejected')">رفض</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePayment('${p.id}')">${icon('trash')}</button>
           </td>
-        </tr>`).join('') : `<tr><td colspan="6" class="empty">لا توجد مدفوعات بعد</td></tr>`}</tbody></table>
+        </tr>`).join('') : `<tr><td colspan="6" class="empty">لا توجد مدفوعات بعد</td></tr>`}</tbody></table></div>
     </div>`;
+}
+async function deletePayment(id){
+  if (!confirm('حذف سجل الدفع ده؟')) return;
+  try { await DB.remove('Payments', id); toast('تم الحذف'); renderPaymentsTab(); } catch(e){ toast(friendlyError(e)); }
 }
 async function setPaymentStatus(id, status){
   try { await DB.update('Payments', id, { status }); toast('تم التحديث'); renderPaymentsTab(); } catch(e){ toast(friendlyError(e)); }
@@ -695,7 +708,7 @@ async function renderCertificatesTab(){
       </div>
     </div>
     <div class="panel">
-      <table class="rows"><thead><tr><th>الاسم</th><th>البريد</th><th>الدورة</th><th>الرمز</th><th>الحالة</th><th></th></tr></thead>
+      <div class="table-wrap"><table class="rows"><thead><tr><th>الاسم</th><th>البريد</th><th>الدورة</th><th>الرمز</th><th>الحالة</th><th></th></tr></thead>
       <tbody>${certs.length ? certs.map(c=>`
         <tr>
           <td>${escapeHtml(c.full_name_ar||'')}</td>
@@ -707,7 +720,7 @@ async function renderCertificatesTab(){
             <button class="btn btn-ghost btn-sm" onclick="editCert('${c.id}')">${icon('edit')}</button>
             <button class="btn btn-danger btn-sm" onclick="deleteCert('${c.id}')">${icon('trash')}</button>
           </td>
-        </tr>`).join('') : `<tr><td colspan="6" class="empty">لا توجد شهادات بعد</td></tr>`}</tbody></table>
+        </tr>`).join('') : `<tr><td colspan="6" class="empty">لا توجد شهادات بعد</td></tr>`}</tbody></table></div>
     </div>`;
   document.getElementById('certCode').value = genCode();
   document.getElementById('certSaveBtn').addEventListener('click', saveCert);
@@ -777,7 +790,7 @@ async function renderCouponsTab(){
       <button class="btn btn-primary" id="couponSaveBtn">${icon('plus')} حفظ</button>
     </div>
     <div class="panel">
-      <table class="rows"><thead><tr><th>الكود</th><th>الخصم</th><th>الدورة</th><th>متبقٍ</th><th>مفعّل</th><th></th></tr></thead>
+      <div class="table-wrap"><table class="rows"><thead><tr><th>الكود</th><th>الخصم</th><th>الدورة</th><th>متبقٍ</th><th>مفعّل</th><th></th></tr></thead>
       <tbody>${coupons.length ? coupons.map(c=>`
         <tr>
           <td style="font-family:monospace;">${escapeHtml(c.id)}</td>
@@ -789,7 +802,7 @@ async function renderCouponsTab(){
             <button class="btn btn-ghost btn-sm" onclick="toggleCoupon('${c.id}', ${!(c.active==='TRUE'||c.active===true)})">${(c.active==='TRUE'||c.active===true)?'إيقاف':'تفعيل'}</button>
             <button class="btn btn-danger btn-sm" onclick="deleteCoupon('${c.id}')">${icon('trash')}</button>
           </td>
-        </tr>`).join('') : `<tr><td colspan="6" class="empty">لا توجد أكواد بعد</td></tr>`}</tbody></table>
+        </tr>`).join('') : `<tr><td colspan="6" class="empty">لا توجد أكواد بعد</td></tr>`}</tbody></table></div>
     </div>`;
   document.getElementById('couponSaveBtn').addEventListener('click', saveCoupon);
 }
@@ -817,30 +830,112 @@ async function deleteCoupon(code){
 }
 
 /* =====================================================================
-   USERS (read-only + role toggle)
+   USERS (full student data + detail drill-down + role toggle + delete)
    ===================================================================== */
 async function renderUsersTab(){
   const users = await DB.listAll('Users');
+  window._usersCache = users;
   content.innerHTML = `
-    <div class="content-head"><h1>${icon('book')} المستخدمون</h1></div>
+    <div class="content-head"><h1>${icon('book')} المستخدمون <span style="font-size:13px; color:var(--ink-soft); font-weight:400;">(${users.length} مستخدم)</span></h1></div>
     <div class="panel">
-      <table class="rows"><thead><tr><th></th><th>الاسم</th><th>البريد</th><th>الهاتف</th><th>المستوى</th><th>الدور</th><th></th></tr></thead>
+      <div class="table-wrap"><table class="rows"><thead><tr><th></th><th>الاسم</th><th>البريد</th><th>الهاتف</th><th>الجنس</th><th>المستوى</th><th>تاريخ التسجيل</th><th>الدور</th><th></th></tr></thead>
       <tbody>${users.length ? users.map(u=>`
         <tr>
           <td>${u.avatar_url?`<img class="thumb-sm" src="${escapeHtml(u.avatar_url)}">`:''}</td>
           <td>${escapeHtml(u.full_name||'')}</td>
           <td style="font-size:12.5px;">${escapeHtml(u.email||'')}</td>
           <td style="font-size:12.5px;">${escapeHtml(u.phone||'—')}</td>
+          <td style="font-size:12.5px;">${u.gender==='male'?'ذكر':u.gender==='female'?'أنثى':'—'}</td>
           <td style="font-size:12.5px;">${escapeHtml(u.level||'—')}</td>
+          <td style="font-size:12px; color:var(--ink-soft);">${escapeHtml((u.created_at||'').slice(0,10)||'—')}</td>
           <td><span class="badge ${u.role==='admin'?'approved':'pending'}">${u.role==='admin'?'أدمن':'طالب'}</span></td>
           <td class="row-actions">
+            <button class="btn btn-primary btn-sm" onclick="renderStudentDetail('${u.id}')">التفاصيل</button>
             <button class="btn btn-ghost btn-sm" onclick="toggleAdmin('${u.id}', '${u.role==='admin'?'student':'admin'}')">${u.role==='admin'?'إلغاء الأدمن':'ترقية لأدمن'}</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">${icon('trash')}</button>
           </td>
-        </tr>`).join('') : `<tr><td colspan="7" class="empty">لا يوجد مستخدمون بعد</td></tr>`}</tbody></table>
+        </tr>`).join('') : `<tr><td colspan="9" class="empty">لا يوجد مستخدمون بعد</td></tr>`}</tbody></table></div>
     </div>`;
 }
 async function toggleAdmin(uid, role){
   try { await DB.update('Users', uid, { role }); toast('تم التحديث'); renderUsersTab(); } catch(e){ toast(friendlyError(e)); }
+}
+async function deleteUser(uid){
+  if (!confirm('حذف بيانات هذا المستخدم من قاعدة البيانات؟\nملحوظة: ده بيحذف مستنده من Firestore بس — حساب الدخول نفسه في Firebase Authentication لازم يتحذف يدويًا من لوحة Authentication ← Users.')) return;
+  try { await DB.remove('Users', uid); toast('تم الحذف'); renderUsersTab(); } catch(e){ toast(friendlyError(e)); }
+}
+
+/* ---- Student detail: full picture for one student (progress, quizzes, payments, certificates) ---- */
+async function renderStudentDetail(uid){
+  content.innerHTML = `<div class="content-head"><h1>${icon('book')} تفاصيل الطالب</h1></div><div class="empty">...جارٍ التحميل</div>`;
+  try {
+    const [user, progress, attempts, payments, certs, courses, lectures, tasks] = await Promise.all([
+      DB.get('Users', uid),
+      DB.listAll('UserProgress', 'user_id', uid),
+      DB.listAll('QuizAttempts', 'user_id', uid),
+      DB.listAll('Payments', 'user_id', uid),
+      DB.listAll('Certificates', 'user_id', uid),
+      DB.listAll('Courses'), DB.listAll('Lectures'), DB.listAll('Tasks'),
+    ]);
+    if (!user){ content.innerHTML = `<div class="empty">المستخدم غير موجود</div>`; return; }
+    const doneIds = new Set(progress.filter(p=>String(p.completed).toUpperCase()==='TRUE').map(p=>String(p.task_id)));
+    const courseRows = courses.map(c=>{
+      const cLectures = lectures.filter(l=>String(l.course_id)===String(c.id));
+      const cTasks = tasks.filter(t=>cLectures.some(l=>String(l.id)===String(t.lecture_id)));
+      if (!cTasks.length) return null;
+      const doneCount = cTasks.filter(t=>doneIds.has(String(t.id))).length;
+      const pct = Math.round(100*doneCount/cTasks.length);
+      if (doneCount===0) return null; // only show courses the student actually started
+      return `<tr><td>${escapeHtml(c.title_ar||'')}</td><td>${doneCount}/${cTasks.length}</td><td>${pct}%</td></tr>`;
+    }).filter(Boolean).join('');
+
+    content.innerHTML = `
+      <div class="content-head">
+        <h1>${icon('book')} ${escapeHtml(user.full_name||'طالب')}</h1>
+        <button class="btn btn-ghost btn-sm" onclick="renderUsersTab()">← رجوع للمستخدمين</button>
+      </div>
+
+      <div class="panel">
+        <h3>البيانات الأساسية</h3>
+        <div class="field-row">
+          <div><div class="hint">البريد</div><div>${escapeHtml(user.email||'—')}</div></div>
+          <div><div class="hint">الهاتف</div><div>${escapeHtml(user.phone||'—')}</div></div>
+          <div><div class="hint">الجنس</div><div>${user.gender==='male'?'ذكر':user.gender==='female'?'أنثى':'—'}</div></div>
+          <div><div class="hint">المستوى</div><div>${escapeHtml(user.level||'—')}</div></div>
+          <div><div class="hint">تاريخ التسجيل</div><div>${escapeHtml((user.created_at||'').slice(0,10)||'—')}</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>تقدّم الدورات</h3>
+        <div class="table-wrap"><table class="rows"><thead><tr><th>الدورة</th><th>مهام مكتملة</th><th>النسبة</th></tr></thead>
+        <tbody>${courseRows || `<tr><td colspan="3" class="empty">لم يبدأ أي دورة بعد</td></tr>`}</tbody></table></div>
+      </div>
+
+      <div class="panel">
+        <h3>محاولات الاختبارات (${attempts.length})</h3>
+        <div class="table-wrap"><table class="rows"><thead><tr><th>النتيجة</th><th>ناجح؟</th><th>المحاولة رقم</th><th>التاريخ</th></tr></thead>
+        <tbody>${attempts.length ? attempts.sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||'')).map(a=>`
+          <tr><td>${a.score||0}%</td><td>${String(a.passed).toUpperCase()==='TRUE'?'✓':'✗'}</td><td>${a.attempt_no||1}</td><td style="font-size:12px; color:var(--ink-soft);">${escapeHtml((a.created_at||'').slice(0,10))}</td></tr>
+        `).join('') : `<tr><td colspan="4" class="empty">لا توجد محاولات بعد</td></tr>`}</tbody></table></div>
+      </div>
+
+      <div class="panel">
+        <h3>المدفوعات (${payments.length})</h3>
+        <div class="table-wrap"><table class="rows"><thead><tr><th>الإثبات</th><th>الطريقة</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+        <tbody>${payments.length ? payments.map(p=>`
+          <tr><td>${p.proof_url?`<a href="${escapeHtml(p.proof_url)}" target="_blank"><img class="thumb-sm" src="${escapeHtml(p.proof_url)}"></a>`:'—'}</td><td>${escapeHtml(p.method||'')}</td><td><span class="badge ${p.status||'pending'}">${p.status==='approved'?'مقبول':p.status==='rejected'?'مرفوض':'قيد المراجعة'}</span></td><td style="font-size:12px; color:var(--ink-soft);">${escapeHtml((p.created_at||'').slice(0,10))}</td></tr>
+        `).join('') : `<tr><td colspan="4" class="empty">لا توجد مدفوعات بعد</td></tr>`}</tbody></table></div>
+      </div>
+
+      <div class="panel">
+        <h3>الشهادات (${certs.length})</h3>
+        <div class="table-wrap"><table class="rows"><thead><tr><th>الدورة</th><th>الرمز</th><th>الحالة</th></tr></thead>
+        <tbody>${certs.length ? certs.map(c=>`
+          <tr><td>${escapeHtml((courses.find(x=>x.id===c.course_id)||{}).title_ar||'—')}</td><td style="font-family:monospace;">${escapeHtml(c.verify_code||'')}</td><td><span class="badge ${c.status||'pending'}">${c.status==='issued'?'صادرة':'قيد المراجعة'}</span></td></tr>
+        `).join('') : `<tr><td colspan="3" class="empty">لا توجد شهادات بعد</td></tr>`}</tbody></table></div>
+      </div>`;
+  } catch(e){ content.innerHTML = `<div class="empty">${escapeHtml(friendlyError(e))}</div>`; }
 }
 
 /* =====================================================================
