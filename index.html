@@ -541,8 +541,8 @@ function renderTextBlocks(){
   const host = document.getElementById('textBlocksHost');
   host.innerHTML = textBlocks.map((b,i)=>`
     <div class="tblock">
-      <textarea placeholder="النص هنا" oninput="textBlocks[${i}].text=this.value">${escapeHtml(b.text)}</textarea>
-      <input type="color" value="${b.color||'#151510'}" oninput="textBlocks[${i}].color=this.value" title="اللون">
+      <textarea id="tbText-${i}" placeholder="النص هنا" style="color:${b.color||'#151510'}; font-weight:600;" oninput="textBlocks[${i}].text=this.value">${escapeHtml(b.text)}</textarea>
+      <input type="color" value="${b.color||'#151510'}" oninput="textBlocks[${i}].color=this.value; document.getElementById('tbText-${i}').style.color=this.value;" title="اللون">
       <select onchange="textBlocks[${i}].animation=this.value">
         <option value="" ${!b.animation?'selected':''}>بدون حركة</option>
         <option value="fade" ${b.animation==='fade'?'selected':''}>ظهور تدريجي</option>
@@ -593,16 +593,20 @@ async function saveTask(){
   if (!title_ar || !lecture_id){ toast('اختر المحاضرة واكتب عنوان المهمة'); return; }
   btn.disabled = true; btn.textContent = '...جارٍ الحفظ';
   try {
+    const editId = document.getElementById('taskEditId').value;
+    // FieldValue.delete() is only valid inside update()/set(merge:true) calls —
+    // using it while creating a brand-new document throws "invalid-argument"
+    // (Firestore rejects a delete sentinel on a field that doesn't exist yet).
+    // So the "clear the other type's fields" sentinels are only added on edits.
+    const clearOtherFields = editId ? firebase.firestore.FieldValue.delete() : undefined;
     const data = { title_ar, lecture_id, type, order: Number(document.getElementById('taskOrder').value)||1 };
     if (['video','audio','pdf'].includes(type)){
       data.content_url = document.getElementById('taskContentUrl').value.trim();
-      data.content_json = firebase.firestore.FieldValue.delete();
-      data.quiz_data = firebase.firestore.FieldValue.delete();
+      if (editId){ data.content_json = clearOtherFields; data.quiz_data = clearOtherFields; }
     } else if (type==='text'){
       if (!textBlocks.length){ toast('أضف جزء نص واحد على الأقل'); btn.disabled=false; btn.innerHTML=`${icon('plus')} حفظ`; return; }
       data.content_json = textBlocks.map(b=>({ text:b.text, color:b.color, animation:b.animation||'' }));
-      data.content_url = firebase.firestore.FieldValue.delete();
-      data.quiz_data = firebase.firestore.FieldValue.delete();
+      if (editId){ data.content_url = clearOtherFields; data.quiz_data = clearOtherFields; }
     } else if (type==='quiz'){
       if (!quizQuestions.length){ toast('أضف سؤال واحد على الأقل'); btn.disabled=false; btn.innerHTML=`${icon('plus')} حفظ`; return; }
       data.quiz_data = {
@@ -611,10 +615,8 @@ async function saveTask(){
         max_attempts: Number(document.getElementById('quizMaxAttempts').value)||3,
         pass_percent: Number(document.getElementById('quizPassPercent').value)||75,
       };
-      data.content_url = firebase.firestore.FieldValue.delete();
-      data.content_json = firebase.firestore.FieldValue.delete();
+      if (editId){ data.content_url = clearOtherFields; data.content_json = clearOtherFields; }
     }
-    const editId = document.getElementById('taskEditId').value;
     if (editId) await DB.update('Tasks', editId, data);
     else await DB.create('Tasks', data);
     toast('تم الحفظ بنجاح'); renderTasksTab();
