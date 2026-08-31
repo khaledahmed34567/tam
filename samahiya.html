@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>قرية السماحية الكبرى</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+:root{
+  --teal:#0B4F4A;
+  --teal-dark:#083a36;
+  --sand:#F3ECD9;
+  --sand-2:#eadfc4;
+  --rust:#C0602A;
+  --olive:#6E7B3A;
+  --navy:#152229;
+  --white:#FFFFFF;
+  --line: rgba(21,34,41,.12);
+  --shadow: 0 10px 30px rgba(11,79,74,.12);
+  --radius: 14px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Almarai', sans-serif;
+  background:var(--sand);
+  color:var(--navy);
+  line-height:1.7;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4,.brand,.stat-num,.btn,.tab,.nav a{font-family:'Cairo', sans-serif;}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%; display:block;}
+button{font-family:inherit; cursor:pointer; border:none;}
+.container{max-width:1180px; margin:0 auto; padding:0 20px;}
+.section{padding:70px 0;}
+.section-head{margin-bottom:36px; max-width:640px;}
+.section-head h2{font-size:clamp(26px,4vw,38px); font-weight:800; color:var(--teal-dark);}
+.section-head p{color:#4a5a55; margin-top:8px; font-size:15px;}
+.section.alt{background:var(--white);}
+
+/* ===== HEADER ===== */
+header{
+  position:sticky; top:0; z-index:100;
+  background:var(--teal); color:var(--white);
+  border-bottom:3px solid var(--rust);
+}
+.nav-wrap{display:flex; align-items:center; justify-content:space-between; padding:14px 0;}
+.brand{display:flex; align-items:center; gap:10px; font-weight:800; font-size:19px;}
+.brand-mark{
+  width:38px; height:38px; border-radius:9px;
+  background:var(--rust);
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; font-weight:900; flex-shrink:0;
+}
+.nav{display:flex; gap:22px; align-items:center;}
+.nav a{font-size:14.5px; font-weight:600; opacity:.92; padding:6px 2px; border-bottom:2px solid transparent; transition:border-color .2s;}
+.nav a:hover{border-color:var(--rust);}
+.auth-slot{display:flex; align-items:center; gap:10px;}
+.btn{
+  padding:9px 18px; border-radius:999px; font-weight:700; font-size:14px;
+  transition:transform .15s, box-shadow .15s;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn-solid{background:var(--rust); color:#fff;}
+.btn-solid:hover{box-shadow:0 6px 18px rgba(192,96,42,.4);}
+.btn-outline{background:transparent; border:1.5px solid rgba(255,255,255,.55)!important; color:#fff;}
+.btn-ghost{background:rgba(255,255,255,.12); color:#fff;}
+.menu-btn{display:none; background:none; color:#fff; font-size:24px;}
+
+@media(max-width:880px){
+  .nav{position:fixed; inset:64px 0 0 0; background:var(--teal); flex-direction:column; padding:26px 24px; gap:18px; transform:translateX(105%); transition:transform .3s; overflow-y:auto;}
+  .nav.open{transform:translateX(0);}
+  .menu-btn{display:block;}
+}
+
+/* ===== HERO ===== */
+.hero{
+  position:relative;
+  background:
+    radial-gradient(ellipse at 15% 20%, rgba(192,96,42,.35), transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(110,123,58,.35), transparent 55%),
+    var(--teal-dark);
+  color:#fff; padding:76px 0 0;
+  overflow:hidden;
+}
+.hero-grid{display:grid; grid-template-columns:1.1fr .9fr; gap:40px; align-items:center; padding-bottom:50px;}
+@media(max-width:880px){.hero-grid{grid-template-columns:1fr;}}
+.eyebrow-line{display:flex; align-items:center; gap:10px; margin-bottom:18px; color:var(--sand-2); font-size:14px; font-weight:700;}
+.eyebrow-line::before{content:""; width:34px; height:2px; background:var(--rust);}
+.hero h1{font-size:clamp(34px,5.4vw,58px); font-weight:900; line-height:1.15;}
+.hero h1 span{color:var(--sand-2); display:block; font-size:.5em; font-weight:700; margin-top:10px;}
+.hero p.lead{margin-top:20px; max-width:480px; color:#d7e6e2; font-size:16.5px;}
+.hero-actions{display:flex; gap:14px; margin-top:30px; flex-wrap:wrap;}
+.hero-art{position:relative; height:340px;}
+.hero-art svg{width:100%; height:100%;}
+
+.stats-strip{
+  display:grid; grid-template-columns:repeat(4,1fr);
+  background:var(--rust); color:#fff;
+}
+.stats-strip div{padding:22px 10px; text-align:center; border-inline-start:1px solid rgba(255,255,255,.25);}
+.stats-strip div:first-child{border-inline-start:none;}
+.stat-num{font-size:clamp(22px,3vw,30px); font-weight:900;}
+.stat-label{font-size:12.5px; opacity:.9; margin-top:2px;}
+@media(max-width:700px){.stats-strip{grid-template-columns:repeat(2,1fr);} .stats-strip div:nth-child(3){border-inline-start:none;}}
+
+/* ===== ABOUT ===== */
+.about-grid{display:grid; grid-template-columns:1fr 1fr; gap:46px; align-items:start;}
+@media(max-width:880px){.about-grid{grid-template-columns:1fr;}}
+.about-grid p{color:#3d4b46; margin-bottom:14px;}
+.fact-list{display:flex; flex-direction:column; gap:16px;}
+.fact{display:flex; gap:14px; align-items:flex-start; background:var(--sand); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px;}
+.fact-ico{width:40px; height:40px; border-radius:10px; background:var(--olive); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0;}
+.fact h4{font-size:15px; margin-bottom:3px;}
+.fact p{font-size:13.5px; color:#5b6a64; margin:0;}
+
+/* ===== CARDS GRID (news/services/officials/events) ===== */
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:22px;}
+@media(max-width:900px){.grid3{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:620px){.grid3{grid-template-columns:1fr;}}
+.card{
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+  overflow:hidden; box-shadow:0 2px 10px rgba(21,34,41,.05);
+  display:flex; flex-direction:column;
+}
+.card-body{padding:18px 20px; flex:1; display:flex; flex-direction:column;}
+.card-tag{display:inline-block; font-size:11.5px; font-weight:700; color:var(--rust); background:rgba(192,96,42,.1); padding:3px 10px; border-radius:999px; margin-bottom:10px; align-self:flex-start;}
+.card h3{font-size:17px; margin-bottom:8px; color:var(--teal-dark);}
+.card .meta{font-size:12.5px; color:#8a978f; margin-top:auto; padding-top:12px;}
+.card p{font-size:14px; color:#54625c;}
+.card-img{height:150px; background:var(--sand-2); background-size:cover; background-position:center;}
+.card-admin-actions{display:flex; gap:8px; margin-top:12px;}
+.mini-btn{font-size:12px; padding:6px 12px; border-radius:8px; font-weight:700;}
+.mini-btn.del{background:#fde8e0; color:#a13a1a;}
+.mini-btn.edit{background:#e4efe0; color:#3e5a2a;}
+.empty-note{color:#8a978f; font-size:14px; padding:20px 0;}
+
+/* officials */
+.official-card{display:flex; gap:16px; align-items:center; padding:20px;}
+.avatar{width:58px; height:58px; border-radius:50%; background:var(--teal); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px; flex-shrink:0;}
+.official-card h4{font-size:16px;}
+.official-card .role{color:var(--rust); font-size:13px; font-weight:700; margin:2px 0 6px;}
+.official-card .contact{font-size:13px; color:#5b6a64;}
+
+/* gallery */
+.gallery-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+@media(max-width:880px){.gallery-grid{grid-template-columns:repeat(2,1fr);}}
+.gallery-item{aspect-ratio:1/1; border-radius:12px; overflow:hidden; background:var(--sand-2); position:relative;}
+.gallery-item img{width:100%; height:100%; object-fit:cover;}
+.gallery-item .del-overlay{position:absolute; top:6px; left:6px;}
+
+/* prayer widget */
+.prayer-card{
+  background:var(--teal); color:#fff; border-radius:18px; padding:28px;
+  display:grid; grid-template-columns:repeat(5,1fr); gap:10px; text-align:center;
+}
+@media(max-width:700px){.prayer-card{grid-template-columns:repeat(3,1fr);}}
+.prayer-card .p-item .name{font-size:12.5px; opacity:.8;}
+.prayer-card .p-item .time{font-size:19px; font-weight:800; margin-top:4px;}
+
+/* admin add-forms */
+.admin-form{
+  background:#fff; border:1.5px dashed var(--rust); border-radius:var(--radius);
+  padding:20px; margin-bottom:26px; display:none;
+}
+.admin-form.show{display:block;}
+.admin-form h4{margin-bottom:14px; color:var(--rust); font-size:15px;}
+.form-row{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;}
+@media(max-width:600px){.form-row{grid-template-columns:1fr;}}
+.field{display:flex; flex-direction:column; gap:5px;}
+.field.full{grid-column:1/-1;}
+.field label{font-size:12.5px; font-weight:700; color:#4a5a55;}
+input,textarea,select{
+  padding:10px 12px; border:1px solid var(--line); border-radius:9px; font-family:inherit; font-size:14px; background:#fbfaf6;
+}
+textarea{resize:vertical; min-height:70px;}
+.admin-toggle-row{display:flex; justify-content:flex-end; margin-bottom:16px;}
+
+/* footer */
+footer{background:var(--navy); color:#cdd8d4; padding:50px 0 24px;}
+.footer-grid{display:grid; grid-template-columns:2fr 1fr 1fr; gap:36px; margin-bottom:34px;}
+@media(max-width:700px){.footer-grid{grid-template-columns:1fr;}}
+footer h4{color:#fff; font-size:15px; margin-bottom:14px;}
+footer a, footer p{font-size:13.5px; color:#a9b6b1;}
+footer li{list-style:none; margin-bottom:8px;}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.1); padding-top:18px; font-size:12.5px; text-align:center; color:#7f8d88;}
+
+/* modal */
+.overlay{
+  position:fixed; inset:0; background:rgba(11,20,18,.6); display:none;
+  align-items:center; justify-content:center; z-index:1000; padding:20px;
+}
+.overlay.show{display:flex;}
+.modal{
+  background:#fff; border-radius:18px; width:100%; max-width:420px;
+  padding:30px 28px; position:relative; max-height:92vh; overflow-y:auto;
+}
+.modal h3{font-size:21px; color:var(--teal-dark); margin-bottom:6px;}
+.modal .sub{font-size:13.5px; color:#8a978f; margin-bottom:22px;}
+.close-x{position:absolute; top:16px; left:16px; font-size:22px; color:#9aa6a1; background:none;}
+.tabs{display:flex; background:var(--sand); border-radius:10px; padding:4px; margin-bottom:20px;}
+.tab{flex:1; text-align:center; padding:9px 0; border-radius:8px; font-size:14px; font-weight:700; color:#6b7b74;}
+.tab.active{background:var(--teal); color:#fff;}
+.auth-form{display:none; flex-direction:column; gap:12px;}
+.auth-form.active{display:flex;}
+.forgot-link{font-size:13px; color:var(--rust); font-weight:700; text-align:left; cursor:pointer;}
+.divider{display:flex; align-items:center; gap:10px; margin:18px 0; color:#b4bfba; font-size:12.5px;}
+.divider::before,.divider::after{content:""; flex:1; height:1px; background:var(--line);}
+.google-btn{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  border:1.5px solid var(--line); background:#fff; padding:11px; border-radius:10px; font-weight:700; font-size:14px;
+}
+.msg-box{font-size:13px; padding:10px 12px; border-radius:8px; margin-bottom:12px; display:none;}
+.msg-box.show{display:block;}
+.msg-box.err{background:#fde8e0; color:#a13a1a;}
+.msg-box.ok{background:#e4efe0; color:#3e5a2a;}
+.user-chip{display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.14); padding:6px 12px 6px 6px; border-radius:999px; font-size:13px; font-weight:700;}
+.user-chip .dot{width:28px; height:28px; border-radius:50%; background:var(--rust); display:flex; align-items:center; justify-content:center; font-size:13px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container nav-wrap">
+    <div class="brand"><div class="brand-mark">س</div> قرية السماحية الكبرى</div>
+    <nav class="nav" id="nav">
+      <a href="#about">عن القرية</a>
+      <a href="#news">الأخبار</a>
+      <a href="#services">الخدمات</a>
+      <a href="#officials">المسؤولون</a>
+      <a href="#gallery">معرض الصور</a>
+      <a href="#events">الفعاليات</a>
+      <div class="auth-slot" id="mobileAuthSlot" style="margin-top:16px;"></div>
+    </nav>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <div class="auth-slot" id="authSlot"></div>
+      <button class="menu-btn" id="menuBtn">☰</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <div class="eyebrow-line">بوابة القرية الرسمية</div>
+      <h1>قرية السماحية الكبرى<span>مكان يجمعنا، وتاريخ نفخر به</span></h1>
+      <p class="lead" id="heroTagline">موقع يخدم كل أهالي القرية: أخبار أولاً بأول، خدمات ميسّرة، وتواصل مباشر مع المسؤولين ومجلس القرية.</p>
+      <div class="hero-actions">
+        <a href="#news" class="btn btn-solid">تصفح آخر الأخبار</a>
+        <a href="#services" class="btn btn-outline">دليل الخدمات</a>
+      </div>
+    </div>
+    <div class="hero-art">
+      <svg viewBox="0 0 400 340" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="200" cy="170" r="150" fill="rgba(255,255,255,.05)"/>
+        <path d="M40 260 Q200 190 360 260 L360 300 L40 300 Z" fill="#6E7B3A" opacity=".55"/>
+        <rect x="150" y="150" width="100" height="110" fill="#F3ECD9"/>
+        <polygon points="140,150 200,105 260,150" fill="#C0602A"/>
+        <rect x="185" y="200" width="30" height="60" fill="#0B4F4A"/>
+        <circle cx="200" cy="95" r="10" fill="#F3ECD9"/>
+        <rect x="196" y="60" width="8" height="35" fill="#F3ECD9"/>
+        <rect x="60" y="190" width="18" height="70" fill="#6E7B3A"/>
+        <circle cx="69" cy="180" r="26" fill="#6E7B3A"/>
+        <rect x="320" y="200" width="18" height="60" fill="#6E7B3A"/>
+        <circle cx="329" cy="190" r="24" fill="#6E7B3A"/>
+      </svg>
+    </div>
+  </div>
+  <div class="stats-strip">
+    <div><div class="stat-num" id="statPop">—</div><div class="stat-label">نسمة</div></div>
+    <div><div class="stat-num" id="statYear">—</div><div class="stat-label">تأسست عام</div></div>
+    <div><div class="stat-num" id="statArea">—</div><div class="stat-label">فدان مساحة</div></div>
+    <div><div class="stat-num" id="statFamilies">—</div><div class="stat-label">عائلة</div></div>
+  </div>
+</section>
+
+<section class="section" id="about">
+  <div class="container about-grid">
+    <div>
+      <div class="section-head" style="margin-bottom:20px;">
+        <h2>عن القرية</h2>
+      </div>
+      <p id="aboutText1">قرية السماحية الكبرى من القرى العريقة التي تجمع بين أصالة الماضي وتطلعات المستقبل، ويعمل أهلها في الزراعة والتجارة والحرف المختلفة.</p>
+      <p id="aboutText2">يحرص مجلس القرية على تطوير الخدمات الأساسية من صحة وتعليم ومرافق، وهذا الموقع بوابتكم للمتابعة والمشاركة في كل ما يخص قريتكم.</p>
+    </div>
+    <div class="fact-list">
+      <div class="fact"><div class="fact-ico">ص</div><div><h4>الرعاية الصحية</h4><p>وحدة صحية ونقاط إسعاف تخدم أهالي القرية على مدار الساعة.</p></div></div>
+      <div class="fact"><div class="fact-ico">ت</div><div><h4>التعليم</h4><p>مدارس ابتدائية وإعدادية تخدم أبناء القرية والقرى المجاورة.</p></div></div>
+      <div class="fact"><div class="fact-ico">ز</div><div><h4>الزراعة</h4><p>أراضٍ زراعية خصبة تُعد المصدر الأساسي لدخل أغلب الأسر.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section alt" id="prayer">
+  <div class="container">
+    <div class="section-head"><h2>مواقيت الصلاة</h2><p>حسب توقيت المدينة المحددة في إعدادات القرية.</p></div>
+    <div class="prayer-card" id="prayerCard">
+      <div class="p-item"><div class="name">الفجر</div><div class="time" id="pFajr">—</div></div>
+      <div class="p-item"><div class="name">الظهر</div><div class="time" id="pDhuhr">—</div></div>
+      <div class="p-item"><div class="name">العصر</div><div class="time" id="pAsr">—</div></div>
+      <div class="p-item"><div class="name">المغرب</div><div class="time" id="pMaghrib">—</div></div>
+      <div class="p-item"><div class="name">العشاء</div><div class="time" id="pIsha">—</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="news">
+  <div class="container">
+    <div class="section-head"><h2>الأخبار والإعلانات</h2><p>آخر مستجدات القرية وقرارات مجلسها.</p></div>
+    <div class="admin-toggle-row admin-only" style="display:none;"><button class="btn btn-solid" id="toggleNewsForm">+ إضافة خبر</button></div>
+    <div class="admin-form" id="newsForm">
+      <h4>خبر جديد</h4>
+      <div class="form-row">
+        <div class="field"><label>العنوان</label><input id="newsTitle" placeholder="عنوان الخبر"></div>
+        <div class="field"><label>التصنيف</label><input id="newsTag" placeholder="مثال: إعلان، صحة، مجلس القرية"></div>
+        <div class="field full"><label>النص</label><textarea id="newsBody" placeholder="تفاصيل الخبر"></textarea></div>
+      </div>
+      <button class="btn btn-solid" id="submitNews">نشر الخبر</button>
+    </div>
+    <div class="grid3" id="newsGrid"></div>
+  </div>
+</section>
+
+<section class="section alt" id="services">
+  <div class="container">
+    <div class="section-head"><h2>دليل الخدمات</h2><p>كل الجهات والخدمات المتاحة داخل القرية.</p></div>
+    <div class="admin-toggle-row admin-only" style="display:none;"><button class="btn btn-solid" id="toggleSvcForm">+ إضافة خدمة</button></div>
+    <div class="admin-form" id="svcForm">
+      <h4>خدمة جديدة</h4>
+      <div class="form-row">
+        <div class="field"><label>اسم الجهة</label><input id="svcName" placeholder="مثال: الوحدة الصحية"></div>
+        <div class="field"><label>التصنيف</label><input id="svcTag" placeholder="صحة / تعليم / مرافق..."></div>
+        <div class="field"><label>رقم التواصل</label><input id="svcPhone" placeholder="01xxxxxxxxx"></div>
+        <div class="field"><label>مواعيد العمل</label><input id="svcHours" placeholder="9 صباحًا - 5 مساءً"></div>
+        <div class="field full"><label>وصف مختصر</label><textarea id="svcDesc"></textarea></div>
+      </div>
+      <button class="btn btn-solid" id="submitSvc">إضافة الخدمة</button>
+    </div>
+    <div class="grid3" id="svcGrid"></div>
+  </div>
+</section>
+
+<section class="section" id="officials">
+  <div class="container">
+    <div class="section-head"><h2>المسؤولون ومجلس القرية</h2><p>تواصل مباشر مع القائمين على خدمة القرية.</p></div>
+    <div class="admin-toggle-row admin-only" style="display:none;"><button class="btn btn-solid" id="toggleOffForm">+ إضافة مسؤول</button></div>
+    <div class="admin-form" id="offForm">
+      <h4>مسؤول جديد</h4>
+      <div class="form-row">
+        <div class="field"><label>الاسم</label><input id="offName"></div>
+        <div class="field"><label>المنصب</label><input id="offRole" placeholder="عمدة القرية / رئيس المجلس..."></div>
+        <div class="field"><label>رقم التواصل</label><input id="offPhone"></div>
+      </div>
+      <button class="btn btn-solid" id="submitOff">إضافة</button>
+    </div>
+    <div class="grid3" id="offGrid"></div>
+  </div>
+</section>
+
+<section class="section alt" id="gallery">
+  <div class="container">
+    <div class="section-head"><h2>معرض الصور</h2><p>لقطات من قريتنا ومناسباتها.</p></div>
+    <div class="admin-form" id="galForm" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+      <div class="field" style="flex:1; min-width:220px;"><label>رابط الصورة</label><input id="galUrl" placeholder="https://..."></div>
+      <button class="btn btn-solid" id="submitGal" style="height:41px;">إضافة صورة</button>
+    </div>
+    <div class="gallery-grid" id="galGrid"></div>
+  </div>
+</section>
+
+<section class="section" id="events">
+  <div class="container">
+    <div class="section-head"><h2>الفعاليات والمناسبات</h2><p>مواعيد المناسبات والاجتماعات القادمة.</p></div>
+    <div class="admin-toggle-row admin-only" style="display:none;"><button class="btn btn-solid" id="toggleEvtForm">+ إضافة فعالية</button></div>
+    <div class="admin-form" id="evtForm">
+      <h4>فعالية جديدة</h4>
+      <div class="form-row">
+        <div class="field"><label>العنوان</label><input id="evtTitle"></div>
+        <div class="field"><label>التاريخ</label><input id="evtDate" type="date"></div>
+        <div class="field full"><label>التفاصيل</label><textarea id="evtDesc"></textarea></div>
+      </div>
+      <button class="btn btn-solid" id="submitEvt">إضافة الفعالية</button>
+    </div>
+    <div class="grid3" id="evtGrid"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="container footer-grid">
+    <div>
+      <div class="brand" style="color:#fff; margin-bottom:12px;"><div class="brand-mark">س</div>قرية السماحية الكبرى</div>
+      <p>البوابة الرسمية لقرية السماحية الكبرى، تجمع كل ما يخص أهالي القرية في مكان واحد.</p>
+    </div>
+    <div>
+      <h4>روابط سريعة</h4>
+      <ul><li><a href="#news">الأخبار</a></li><li><a href="#services">الخدمات</a></li><li><a href="#officials">المسؤولون</a></li><li><a href="#events">الفعاليات</a></li></ul>
+    </div>
+    <div>
+      <h4>تواصل معنا</h4>
+      <p id="footContact">contact@404error.qd.je</p>
+    </div>
+  </div>
+  <div class="container foot-bottom">© <span id="yr"></span> قرية السماحية الكبرى — جميع الحقوق محفوظة</div>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="overlay" id="authOverlay">
+  <div class="modal">
+    <button class="close-x" id="closeAuth">×</button>
+    <h3 id="authTitle">تسجيل الدخول</h3>
+    <p class="sub">سجّل دخولك للمشاركة في أخبار وفعاليات القرية</p>
+    <div class="tabs">
+      <div class="tab active" data-tab="login">تسجيل الدخول</div>
+      <div class="tab" data-tab="signup">حساب جديد</div>
+    </div>
+    <div class="msg-box" id="authMsg"></div>
+
+    <form class="auth-form active" id="loginForm">
+      <div class="field"><label>البريد الإلكتروني</label><input type="email" id="loginEmail" required></div>
+      <div class="field"><label>كلمة المرور</label><input type="password" id="loginPass" required></div>
+      <div class="forgot-link" id="forgotBtn">نسيت كلمة المرور؟</div>
+      <button class="btn btn-solid" type="submit">دخول</button>
+    </form>
+
+    <form class="auth-form" id="signupForm">
+      <div class="field"><label>الاسم بالكامل</label><input type="text" id="signupName" required></div>
+      <div class="field"><label>البريد الإلكتروني</label><input type="email" id="signupEmail" required></div>
+      <div class="field"><label>كلمة المرور</label><input type="password" id="signupPass" required minlength="6"></div>
+      <button class="btn btn-solid" type="submit">إنشاء الحساب</button>
+    </form>
+
+    <div class="divider">أو</div>
+    <button class="google-btn" id="googleBtn">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.9 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.5 29.6 4.5 24 4.5 13.2 4.5 4.5 13.2 4.5 24S13.2 43.5 24 43.5 43.5 34.8 43.5 24c0-1.2-.1-2.4-.3-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.5 29.6 4.5 24 4.5c-7.4 0-13.8 4.2-17 10.3z"/><path fill="#4CAF50" d="M24 43.5c5.5 0 10.4-1.9 14.2-5.1l-6.5-5.5c-2 1.5-4.6 2.6-7.7 2.6-5.3 0-9.8-3.5-11.4-8.3l-6.7 5.1c3.3 6.5 10 11.2 18.1 11.2z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.9 2.6-2.6 4.8-4.7 6.3l6.5 5.5C40.9 36.9 43.5 30.9 43.5 24c0-1.2-.1-2.4-.3-3.5z"/></svg>
+      المتابعة عبر جوجل
+    </button>
+  </div>
+</div>
+
+<script>
+/* ================= FIREBASE SETUP ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCTGnFOK7m_xNod8mwBPB5HTgTP2BrNm6o",
+  projectId: "cyberintel-d0d4f",
+  appId: "1:533279564815:web:d373567c2be86311127af7a"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const USERS_COL = "poiut";
+
+let currentUser = null;
+let isAdmin = false;
+
+/* ================= AUTH UI ================= */
+const authOverlay = document.getElementById('authOverlay');
+const authSlot = document.getElementById('authSlot');
+const mobileAuthSlot = document.getElementById('mobileAuthSlot');
+const authMsg = document.getElementById('authMsg');
+
+function openAuth(){ authOverlay.classList.add('show'); authMsg.className='msg-box'; }
+function closeAuth(){ authOverlay.classList.remove('show'); }
+document.getElementById('closeAuth').onclick = closeAuth;
+authOverlay.addEventListener('click', e=>{ if(e.target===authOverlay) closeAuth(); });
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active'));
+    document.getElementById(tab.dataset.tab+'Form').classList.add('active');
+    document.getElementById('authTitle').textContent = tab.dataset.tab==='login' ? 'تسجيل الدخول' : 'إنشاء حساب جديد';
+    authMsg.className='msg-box';
+  };
+});
+
+function showMsg(text, type){
+  authMsg.textContent = text;
+  authMsg.className = 'msg-box show ' + type;
+}
+
+function renderAuthSlot(){
+  if(currentUser){
+    const initial = (currentUser.displayName || currentUser.email || '؟').trim()[0].toUpperCase();
+    const html = `
+      <div class="user-chip"><div class="dot">${initial}</div> ${currentUser.displayName || currentUser.email.split('@')[0]}${isAdmin?' (مسؤول)':''}</div>
+      <button class="btn btn-ghost" id="logoutBtn">خروج</button>`;
+    authSlot.innerHTML = html;
+    mobileAuthSlot.innerHTML = html;
+  } else {
+    const html = `<button class="btn btn-solid" onclick="openAuth()">تسجيل الدخول</button>`;
+    authSlot.innerHTML = html;
+    mobileAuthSlot.innerHTML = html;
+  }
+  document.querySelectorAll('#logoutBtn').forEach(b=> b.onclick = ()=> auth.signOut());
+  document.querySelectorAll('.admin-only').forEach(el=> el.style.display = isAdmin ? '' : 'none');
+  document.getElementById('galForm').style.display = isAdmin ? 'flex' : 'none';
+}
+
+async function ensureUserDoc(user, name){
+  const ref = db.collection(USERS_COL).doc(user.uid);
+  const snap = await ref.get();
+  if(!snap.exists){
+    // first-ever user becomes admin automatically
+    const countSnap = await db.collection(USERS_COL).limit(1).get();
+    const role = countSnap.empty ? 'admin' : 'resident';
+    await ref.set({
+      name: name || user.displayName || user.email,
+      email: user.email,
+      role: role,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    return role;
+  }
+  return snap.data().role || 'resident';
+}
+
+auth.onAuthStateChanged(async (user)=>{
+  currentUser = user;
+  if(user){
+    const role = await ensureUserDoc(user);
+    isAdmin = role === 'admin';
+    closeAuth();
+  } else {
+    isAdmin = false;
+  }
+  renderAuthSlot();
+});
+
+document.getElementById('loginForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPass').value;
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+  }catch(err){ showMsg(translateAuthError(err), 'err'); }
+});
+
+document.getElementById('signupForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const name = document.getElementById('signupName').value;
+  const email = document.getElementById('signupEmail').value;
+  const pass = document.getElementById('signupPass').value;
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+    await cred.user.updateProfile({displayName:name});
+    await ensureUserDoc(cred.user, name);
+  }catch(err){ showMsg(translateAuthError(err), 'err'); }
+});
+
+document.getElementById('forgotBtn').onclick = async ()=>{
+  const email = document.getElementById('loginEmail').value;
+  if(!email){ showMsg('يرجى كتابة البريد الإلكتروني أولاً في الحقل بالأعلى', 'err'); return; }
+  try{
+    await auth.sendPasswordResetEmail(email);
+    showMsg('تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني', 'ok');
+  }catch(err){ showMsg(translateAuthError(err), 'err'); }
+};
+
+document.getElementById('googleBtn').onclick = async ()=>{
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try{
+    await auth.signInWithPopup(provider);
+  }catch(err){ showMsg(translateAuthError(err), 'err'); }
+};
+
+function translateAuthError(err){
+  const map = {
+    'auth/user-not-found':'لا يوجد حساب بهذا البريد الإلكتروني',
+    'auth/wrong-password':'كلمة المرور غير صحيحة',
+    'auth/email-already-in-use':'هذا البريد الإلكتروني مستخدم بالفعل',
+    'auth/invalid-email':'صيغة البريد الإلكتروني غير صحيحة',
+    'auth/weak-password':'كلمة المرور ضعيفة، استخدم 6 أحرف على الأقل',
+    'auth/popup-closed-by-user':'تم إغلاق نافذة جوجل قبل إتمام الدخول'
+  };
+  return map[err.code] || 'حدث خطأ، حاول مرة أخرى';
+}
+
+/* ================= MOBILE NAV ================= */
+const navEl = document.getElementById('nav');
+document.getElementById('menuBtn').onclick = ()=> navEl.classList.toggle('open');
+navEl.querySelectorAll('a').forEach(a=> a.onclick = ()=> navEl.classList.remove('open'));
+
+/* ================= ADMIN FORM TOGGLES ================= */
+function wireToggle(btnId, formId){
+  const btn = document.getElementById(btnId);
+  if(btn) btn.onclick = ()=> document.getElementById(formId).classList.toggle('show');
+}
+wireToggle('toggleNewsForm','newsForm');
+wireToggle('toggleSvcForm','svcForm');
+wireToggle('toggleOffForm','offForm');
+wireToggle('toggleEvtForm','evtForm');
+
+/* ================= SETTINGS (hero stats / about / contact) ================= */
+db.collection('settings').doc('main').onSnapshot(snap=>{
+  if(!snap.exists) return;
+  const d = snap.data();
+  if(d.tagline) document.getElementById('heroTagline').textContent = d.tagline;
+  if(d.population) document.getElementById('statPop').textContent = d.population;
+  if(d.founded) document.getElementById('statYear').textContent = d.founded;
+  if(d.area) document.getElementById('statArea').textContent = d.area;
+  if(d.families) document.getElementById('statFamilies').textContent = d.families;
+  if(d.about1) document.getElementById('aboutText1').textContent = d.about1;
+  if(d.about2) document.getElementById('aboutText2').textContent = d.about2;
+  if(d.contactEmail) document.getElementById('footContact').textContent = d.contactEmail;
+  loadPrayerTimes(d.city || 'Cairo', d.country || 'Egypt');
+}, ()=>{ loadPrayerTimes('Cairo','Egypt'); });
+// defaults shown immediately in case no settings doc yet
+document.getElementById('statPop').textContent = '٤٬٢٠٠+';
+document.getElementById('statYear').textContent = '١٩٤٢';
+document.getElementById('statArea').textContent = '١٬١٠٠';
+document.getElementById('statFamilies').textContent = '٦٥٠+';
+
+/* ================= PRAYER TIMES ================= */
+async function loadPrayerTimes(city, country){
+  try{
+    const res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=5`);
+    const data = await res.json();
+    const t = data.data.timings;
+    document.getElementById('pFajr').textContent = t.Fajr;
+    document.getElementById('pDhuhr').textContent = t.Dhuhr;
+    document.getElementById('pAsr').textContent = t.Asr;
+    document.getElementById('pMaghrib').textContent = t.Maghrib;
+    document.getElementById('pIsha').textContent = t.Isha;
+  }catch(e){ /* silent fail, keep dashes */ }
+}
+loadPrayerTimes('Cairo','Egypt');
+
+/* ================= GENERIC COLLECTION HELPERS ================= */
+function esc(s){ return (s||'').toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function fmtDate(ts){
+  if(!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('ar-EG', {year:'numeric', month:'long', day:'numeric'});
+}
+async function removeDoc(col, id){
+  if(!confirm('هل تريد حذف هذا العنصر؟')) return;
+  await db.collection(col).doc(id).delete();
+}
+
+/* ---- NEWS ---- */
+db.collection('news').orderBy('createdAt','desc').onSnapshot(snap=>{
+  const grid = document.getElementById('newsGrid');
+  if(snap.empty){ grid.innerHTML = '<p class="empty-note">لا توجد أخبار منشورة بعد.</p>'; return; }
+  grid.innerHTML = '';
+  snap.forEach(doc=>{
+    const d = doc.data();
+    grid.innerHTML += `
+      <div class="card"><div class="card-body">
+        ${d.tag?`<span class="card-tag">${esc(d.tag)}</span>`:''}
+        <h3>${esc(d.title)}</h3>
+        <p>${esc(d.body)}</p>
+        <div class="meta">${fmtDate(d.createdAt)}</div>
+        ${isAdmin?`<div class="card-admin-actions"><button class="mini-btn del" onclick="removeDoc('news','${doc.id}')">حذف</button></div>`:''}
+      </div></div>`;
+  });
+});
+document.getElementById('submitNews').onclick = async ()=>{
+  const title = document.getElementById('newsTitle').value.trim();
+  const body = document.getElementById('newsBody').value.trim();
+  const tag = document.getElementById('newsTag').value.trim();
+  if(!title || !body) return alert('يرجى إدخال العنوان والنص');
+  await db.collection('news').add({title, body, tag, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  document.getElementById('newsTitle').value=''; document.getElementById('newsBody').value=''; document.getElementById('newsTag').value='';
+  document.getElementById('newsForm').classList.remove('show');
+};
+
+/* ---- SERVICES ---- */
+db.collection('services').orderBy('createdAt','desc').onSnapshot(snap=>{
+  const grid = document.getElementById('svcGrid');
+  if(snap.empty){ grid.innerHTML = '<p class="empty-note">لم تتم إضافة خدمات بعد.</p>'; return; }
+  grid.innerHTML = '';
+  snap.forEach(doc=>{
+    const d = doc.data();
+    grid.innerHTML += `
+      <div class="card"><div class="card-body">
+        ${d.tag?`<span class="card-tag">${esc(d.tag)}</span>`:''}
+        <h3>${esc(d.name)}</h3>
+        <p>${esc(d.desc||'')}</p>
+        <div class="meta">${d.phone?'📞 '+esc(d.phone)+' — ':''}${esc(d.hours||'')}</div>
+        ${isAdmin?`<div class="card-admin-actions"><button class="mini-btn del" onclick="removeDoc('services','${doc.id}')">حذف</button></div>`:''}
+      </div></div>`;
+  });
+});
+document.getElementById('submitSvc').onclick = async ()=>{
+  const name = document.getElementById('svcName').value.trim();
+  if(!name) return alert('يرجى إدخال اسم الجهة');
+  await db.collection('services').add({
+    name, tag: document.getElementById('svcTag').value.trim(),
+    phone: document.getElementById('svcPhone').value.trim(),
+    hours: document.getElementById('svcHours').value.trim(),
+    desc: document.getElementById('svcDesc').value.trim(),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  ['svcName','svcTag','svcPhone','svcHours','svcDesc'].forEach(id=> document.getElementById(id).value='');
+  document.getElementById('svcForm').classList.remove('show');
+};
+
+/* ---- OFFICIALS ---- */
+db.collection('officials').orderBy('createdAt','desc').onSnapshot(snap=>{
+  const grid = document.getElementById('offGrid');
+  if(snap.empty){ grid.innerHTML = '<p class="empty-note">لم تتم إضافة بيانات مسؤولين بعد.</p>'; return; }
+  grid.innerHTML = '';
+  snap.forEach(doc=>{
+    const d = doc.data();
+    grid.innerHTML += `
+      <div class="card"><div class="official-card">
+        <div class="avatar">${esc((d.name||'؟')[0])}</div>
+        <div>
+          <h4>${esc(d.name)}</h4>
+          <div class="role">${esc(d.role||'')}</div>
+          <div class="contact">${d.phone?'📞 '+esc(d.phone):''}</div>
+          ${isAdmin?`<div class="card-admin-actions"><button class="mini-btn del" onclick="removeDoc('officials','${doc.id}')">حذف</button></div>`:''}
+        </div>
+      </div></div>`;
+  });
+});
+document.getElementById('submitOff').onclick = async ()=>{
+  const name = document.getElementById('offName').value.trim();
+  if(!name) return alert('يرجى إدخال الاسم');
+  await db.collection('officials').add({
+    name, role: document.getElementById('offRole').value.trim(),
+    phone: document.getElementById('offPhone').value.trim(),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  ['offName','offRole','offPhone'].forEach(id=> document.getElementById(id).value='');
+  document.getElementById('offForm').classList.remove('show');
+};
+
+/* ---- GALLERY ---- */
+document.getElementById('galForm').style.display = 'none';
+db.collection('gallery').orderBy('createdAt','desc').onSnapshot(snap=>{
+  const grid = document.getElementById('galGrid');
+  if(snap.empty){ grid.innerHTML = '<p class="empty-note">لا توجد صور بعد.</p>'; return; }
+  grid.innerHTML = '';
+  snap.forEach(doc=>{
+    const d = doc.data();
+    grid.innerHTML += `
+      <div class="gallery-item">
+        <img src="${esc(d.url)}" alt="صورة من القرية" loading="lazy">
+        ${isAdmin?`<button class="mini-btn del del-overlay" onclick="removeDoc('gallery','${doc.id}')">حذف</button>`:''}
+      </div>`;
+  });
+});
+document.getElementById('submitGal').onclick = async ()=>{
+  const url = document.getElementById('galUrl').value.trim();
+  if(!url) return alert('يرجى إدخال رابط الصورة');
+  await db.collection('gallery').add({url, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  document.getElementById('galUrl').value='';
+};
+
+/* ---- EVENTS ---- */
+db.collection('events').orderBy('date','asc').onSnapshot(snap=>{
+  const grid = document.getElementById('evtGrid');
+  if(snap.empty){ grid.innerHTML = '<p class="empty-note">لا توجد فعاليات قادمة حاليًا.</p>'; return; }
+  grid.innerHTML = '';
+  snap.forEach(doc=>{
+    const d = doc.data();
+    grid.innerHTML += `
+      <div class="card"><div class="card-body">
+        <span class="card-tag">${esc(d.date)}</span>
+        <h3>${esc(d.title)}</h3>
+        <p>${esc(d.desc||'')}</p>
+        ${isAdmin?`<div class="card-admin-actions"><button class="mini-btn del" onclick="removeDoc('events','${doc.id}')">حذف</button></div>`:''}
+      </div></div>`;
+  });
+});
+document.getElementById('submitEvt').onclick = async ()=>{
+  const title = document.getElementById('evtTitle').value.trim();
+  const date = document.getElementById('evtDate').value;
+  if(!title || !date) return alert('يرجى إدخال العنوان والتاريخ');
+  await db.collection('events').add({title, date, desc: document.getElementById('evtDesc').value.trim(), createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  document.getElementById('evtTitle').value=''; document.getElementById('evtDate').value=''; document.getElementById('evtDesc').value='';
+  document.getElementById('evtForm').classList.remove('show');
+};
+
+document.getElementById('yr').textContent = new Date().getFullYear();
+renderAuthSlot();
+</script>
+</body>
+</html>
