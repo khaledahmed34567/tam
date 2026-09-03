@@ -331,7 +331,7 @@ function renderStudentsList(list, all){
 async function adminTracks(pane){
   pane.innerHTML = `
     <div class="panel">
-      <form id="trackForm" class="form-grid">
+      <form id="trackForm" class="form-grid" novalidate>
         <label class="field field-wide"><span>عنوان المسار</span><input id="tTitle" required /></label>
         <label class="field"><span>الصف</span><select id="tGrade" required><option value="" disabled selected>اختر</option>${gradeOptions()}</select></label>
         <label class="field"><span>الترتيب</span><input id="tOrder" type="number" value="1" required /></label>
@@ -385,7 +385,7 @@ async function adminCourses(pane){
   const trackOptions = tracksSnap.docs.map(d => `<option value="${d.id}">${escapeHtml(d.data().title)}</option>`).join("");
   pane.innerHTML = `
     <div class="panel">
-      <form id="courseForm" class="form-grid">
+      <form id="courseForm" class="form-grid" novalidate>
         <label class="field field-wide"><span>المسار</span><select id="cTrack" required><option value="" disabled selected>اختر مسار</option>${trackOptions}</select></label>
         <label class="field"><span>عنوان الكورس</span><input id="cTitle" required /></label>
         <label class="field"><span>الشهر</span><input id="cMonth" placeholder="مثال: أكتوبر" /></label>
@@ -435,7 +435,7 @@ async function adminLectures(pane){
   const courseOptions = coursesSnap.docs.map(d => `<option value="${d.id}">${escapeHtml(d.data().title)}</option>`).join("");
   pane.innerHTML = `
     <div class="panel">
-      <form id="lectureForm" class="form-grid">
+      <form id="lectureForm" class="form-grid" novalidate>
         <label class="field field-wide"><span>الكورس</span><select id="lCourse" required><option value="" disabled selected>اختر كورس</option>${courseOptions}</select></label>
         <label class="field"><span>عنوان المحاضرة</span><input id="lTitle" required /></label>
         <label class="field"><span>الترتيب</span><input id="lOrder" type="number" value="1" required /></label>
@@ -478,7 +478,7 @@ async function adminTasks(pane){
   const lectureOptions = lecturesSnap.docs.map(d => `<option value="${d.id}">${escapeHtml(d.data().title)}</option>`).join("");
   pane.innerHTML = `
     <div class="panel">
-      <form id="taskForm" class="form-grid">
+      <form id="taskForm" class="form-grid" novalidate>
         <label class="field field-wide"><span>المحاضرة</span><select id="taskLecture" required><option value="" disabled selected>اختر محاضرة</option>${lectureOptions}</select></label>
         <label class="field"><span>عنوان المهمة</span><input id="taskTitle" required /></label>
         <label class="field"><span>الترتيب</span><input id="taskOrder" type="number" value="1" required /></label>
@@ -667,7 +667,7 @@ let examBuilderQuestions = [];
 async function adminExams(pane){
   pane.innerHTML = `
     <div class="panel">
-      <form id="examForm" class="form-grid">
+      <form id="examForm" class="form-grid" novalidate>
         <label class="field field-wide"><span>عنوان الاختبار</span><input id="eTitle" required /></label>
         <label class="field"><span>الصف</span><select id="eGrade" required><option value="" disabled selected>اختر</option>${gradeOptions()}</select></label>
         <label class="field"><span>مدة الاختبار (دقيقة)</span><input id="eDuration" type="number" value="30" required /></label>
