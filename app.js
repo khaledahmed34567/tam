@@ -59,9 +59,13 @@ function toast(msg, type=""){
 }
 async function uploadFile(file, folder){
   const path = `${folder}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g,"")}`;
+  console.log("[debug] uploadFile: بدأ الرفع لمسار", path, "حجم الملف:", file.size, "بايت");
   const fileRef = ref(storage, path);
   await uploadBytes(fileRef, file);
-  return getDownloadURL(fileRef);
+  console.log("[debug] uploadFile: uploadBytes خلص بنجاح");
+  const url = await getDownloadURL(fileRef);
+  console.log("[debug] uploadFile: getDownloadURL خلص، url=", url);
+  return url;
 }
 function confirmDialog(title, body){
   return new Promise((resolve) => {
@@ -340,17 +344,21 @@ async function adminTracks(pane){
 
   $("trackForm").addEventListener("submit", async (e) => {
     e.preventDefault();
+    console.log("[debug] trackForm: submit اشتغل");
     try{
       const file = $("tImage").files[0];
+      console.log("[debug] trackForm: فيه صورة؟", !!file);
       const imageUrl = file ? await uploadFile(file, "trackImages") : "";
+      console.log("[debug] trackForm: رفع الصورة خلص، imageUrl=", imageUrl);
       await addDoc(collection(db,"tracks"), {
         title: $("tTitle").value.trim(), grade: $("tGrade").value, order: +$("tOrder").value,
         description: $("tDesc").value.trim(), imageUrl, coursesCount: 0, createdAt: serverTimestamp()
       });
+      console.log("[debug] trackForm: تم الحفظ في Firestore بنجاح");
       toast("تمت إضافة المسار", "success");
       e.target.reset();
       loadTracksAdminList();
-    }catch(err){ toast(writeErrorMessage(err), "error"); }
+    }catch(err){ console.error("[debug] trackForm: خطأ", err); toast(writeErrorMessage(err), "error"); }
   });
   loadTracksAdminList();
 }
