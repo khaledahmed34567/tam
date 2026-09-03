@@ -143,6 +143,26 @@ $("pinForm").addEventListener("submit", async (e) => {
   }catch(err){ toast("حصل خطأ أثناء الدخول، حاول تاني", "error"); }
 });
 
+/* ---------- auto sign-in (login screen removed per request — single user, no PIN) ---------- */
+async function autoSignIn(){
+  try{
+    let cred;
+    try{
+      cred = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
+    }catch(err){
+      if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential"){
+        provisioning = true;
+        cred = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
+        await setDoc(doc(db,"users",cred.user.uid), {
+          fullName: "فريق Omar Tareeq", email: ADMIN_EMAIL, role: "admin", walletBalance: 0, createdAt: serverTimestamp()
+        });
+        provisioning = false;
+      } else throw err;
+    }
+    await enterAdminShell(cred.user.uid);
+  }catch(err){ toast("حصل خطأ أثناء الدخول التلقائي: " + (err?.message || "غير معروف"), "error"); }
+}
+
 /* ---------- session bootstrap ---------- */
 onAuthStateChanged(auth, async (user) => {
   if (user){
@@ -150,9 +170,9 @@ onAuthStateChanged(auth, async (user) => {
     await enterAdminShell(user.uid);
   } else {
     currentUserData = null;
-    show($("auth-view")); hide($("adminShell"));
+    hide($("adminShell"));
     $("headerActions").classList.remove("show");
-    $("pinInput").value = "";
+    autoSignIn(); // login screen removed — sign in automatically instead of showing the PIN form
   }
 });
 $("logoutBtn").onclick = () => signOut(auth);

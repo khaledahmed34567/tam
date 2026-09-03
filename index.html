@@ -42,9 +42,80 @@
     .option-row input[type="file"]{ width:100% !important; }
     .option-row input[type="text"]{ min-width:0; }
   }
+
+  /* تسجيل الدخول ملغي — دخول تلقائي مباشرة للوحة الإدارة */
+  .auth-view{ display:none !important; }
 </style>
 </head>
 <body>
+
+<!-- كونسول تظهر الأخطاء على الشاشة (مفيدة على الموبايل حيث مفيش Developer Tools) -->
+<button id="onScreenConsoleToggle" style="position:fixed;bottom:14px;left:14px;z-index:999999;background:#1d1d1f;color:#fff;border:none;border-radius:999px;padding:9px 16px;font-size:12.5px;font-family:sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);direction:ltr">
+  Console <span id="onScreenConsoleBadge" style="display:none;background:#e0393e;border-radius:999px;padding:1px 7px;margin-inline-start:6px;font-size:11px"></span>
+</button>
+<div id="onScreenConsolePanel" style="display:none;position:fixed;inset:auto 0 0 0;height:55vh;z-index:999998;background:#0f0f10;color:#d8d8dc;font:12px/1.5 ui-monospace,Consolas,monospace;direction:ltr;text-align:left;box-shadow:0 -4px 20px rgba(0,0,0,.4);">
+  <div style="display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #2a2a2d;background:#161617">
+    <strong style="font-family:sans-serif;font-size:12.5px">On-screen Console</strong>
+    <div style="flex:1"></div>
+    <button id="onScreenConsoleClear" style="background:#2a2a2d;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11.5px">Clear</button>
+    <button id="onScreenConsoleClose" style="background:#2a2a2d;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11.5px">Close</button>
+  </div>
+  <div id="onScreenConsoleLog" style="overflow-y:auto;height:calc(100% - 42px);padding:8px 10px;white-space:pre-wrap;word-break:break-word"></div>
+</div>
+<script>
+(function(){
+  var logEl, badgeEl, panelEl, toggleBtn, errCount = 0;
+  function ready(fn){ if (document.readyState !== "loading") fn(); else document.addEventListener("DOMContentLoaded", fn); }
+  function fmt(args){
+    return Array.prototype.map.call(args, function(a){
+      if (a instanceof Error) return (a.stack || a.message || String(a));
+      if (typeof a === "object"){ try{ return JSON.stringify(a); }catch(e){ return String(a); } }
+      return String(a);
+    }).join(" ");
+  }
+  function push(kind, text){
+    if (!logEl) return;
+    var colors = { log:"#d8d8dc", info:"#6cb6ff", warn:"#e6b955", error:"#ff6b6b" };
+    var line = document.createElement("div");
+    line.style.color = colors[kind] || colors.log;
+    line.style.marginBottom = "4px";
+    var time = new Date().toLocaleTimeString("en-GB");
+    line.textContent = "[" + time + "] " + text;
+    logEl.appendChild(line);
+    logEl.scrollTop = logEl.scrollHeight;
+    if (kind === "error" || kind === "warn"){
+      errCount++;
+      if (badgeEl){ badgeEl.style.display = "inline"; badgeEl.textContent = errCount; }
+    }
+  }
+  ["log","info","warn","error"].forEach(function(kind){
+    var original = console[kind] ? console[kind].bind(console) : function(){};
+    console[kind] = function(){
+      original.apply(console, arguments);
+      push(kind, fmt(arguments));
+    };
+  });
+  window.addEventListener("error", function(e){
+    push("error", (e.message || "Script error") + " — " + (e.filename || "") + ":" + (e.lineno || "") + ":" + (e.colno || ""));
+  });
+  window.addEventListener("unhandledrejection", function(e){
+    var reason = e.reason;
+    push("error", "Unhandled promise rejection: " + (reason && (reason.stack || reason.message) ? (reason.stack || reason.message) : String(reason)));
+  });
+  ready(function(){
+    logEl = document.getElementById("onScreenConsoleLog");
+    badgeEl = document.getElementById("onScreenConsoleBadge");
+    panelEl = document.getElementById("onScreenConsolePanel");
+    toggleBtn = document.getElementById("onScreenConsoleToggle");
+    toggleBtn.addEventListener("click", function(){
+      panelEl.style.display = panelEl.style.display === "none" ? "block" : "none";
+      if (panelEl.style.display === "block"){ errCount = 0; badgeEl.style.display = "none"; }
+    });
+    document.getElementById("onScreenConsoleClose").addEventListener("click", function(){ panelEl.style.display = "none"; });
+    document.getElementById("onScreenConsoleClear").addEventListener("click", function(){ logEl.innerHTML = ""; });
+  });
+})();
+</script>
 
 <div id="app-loader" class="app-loader">
   <div class="loader-mark"><span style="font-family:var(--font-display);font-weight:700;font-size:15px">Omar Tareeq</span></div>
