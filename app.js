@@ -37,6 +37,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+window.__appJsLoaded = true; // علامة تأكيد: يوضح إن ملف app.js اتحمل واشتغل فعلاً
+console.log("[debug] app.js: الملف اتحمل وابتدى التنفيذ");
 
 const ADMIN_PIN = "9033"; // change this to something only the team knows
 const ADMIN_EMAIL = "team@omar-tareeq-admin.internal"; // hidden shared account, not a real inbox

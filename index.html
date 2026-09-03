@@ -98,10 +98,24 @@
   window.addEventListener("error", function(e){
     push("error", (e.message || "Script error") + " — " + (e.filename || "") + ":" + (e.lineno || "") + ":" + (e.colno || ""));
   });
+  // capture-phase listener: يمسك أخطاء تحميل الملفات نفسها (404 أو مسار غلط) اللي مش بتوصل لل window.onerror العادي
+  window.addEventListener("error", function(e){
+    var t = e.target;
+    if (t && (t.tagName === "SCRIPT" || t.tagName === "LINK" || t.tagName === "IMG")){
+      push("error", "فشل تحميل الملف: " + (t.src || t.href || "") + " (تحقق من المسار/اسم الملف/حالة الأحرف)");
+    }
+  }, true);
   window.addEventListener("unhandledrejection", function(e){
     var reason = e.reason;
     push("error", "Unhandled promise rejection: " + (reason && (reason.stack || reason.message) ? (reason.stack || reason.message) : String(reason)));
   });
+  // علامة تأكيد: لو app.js اتحمل واشتغل، هيحط window.__appJsLoaded = true من جوّاه.
+  // لو بعد 5 ثواني لسه مش متحطة، يبقى الملف نفسه مش وصل للمتصفح.
+  setTimeout(function(){
+    if (!window.__appJsLoaded){
+      push("error", "app.js لم يتم تحميله أو تنفيذه خلال 5 ثواني — تأكد إن الملف مرفوع بنفس الاسم (app.js بحروف صغيرة) في نفس مجلد index.html على GitHub Pages، وإن الديبلوي خلص");
+    }
+  }, 5000);
   ready(function(){
     logEl = document.getElementById("onScreenConsoleLog");
     badgeEl = document.getElementById("onScreenConsoleBadge");
