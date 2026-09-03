@@ -55,6 +55,7 @@ function toast(msg, type=""){
   el.className = "auth-msg show " + type;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove("show"), 3200);
+  if (type === "error") console.error("[toast]", msg); // إضافة: تسجيل رسائل الخطأ في الكونسول عشان تظهر في On-screen Console
 }
 async function uploadFile(file, folder){
   const path = `${folder}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g,"")}`;
@@ -107,7 +108,9 @@ let provisioning = false;
 let currentUserData = null;
 
 async function enterAdminShell(uid){
+  console.log("[debug] enterAdminShell: بدأ التحقق من صلاحيات uid=", uid);
   const userDoc = await getDoc(doc(db,"users",uid));
+  console.log("[debug] enterAdminShell: userDoc.exists =", userDoc.exists(), "role =", userDoc.exists() ? userDoc.data().role : null);
   if (!userDoc.exists() || userDoc.data().role !== "admin"){
     toast("حصل خطأ في الصلاحيات، حاول تاني", "error");
     await signOut(auth);
@@ -117,6 +120,7 @@ async function enterAdminShell(uid){
   hide($("auth-view")); show($("adminShell"));
   $("headerActions").classList.add("show");
   $("headerUserBox").textContent = currentUserData.fullName || "";
+  console.log("[debug] enterAdminShell: تم عرض لوحة الإدارة");
   initTabs();
 }
 
@@ -145,14 +149,18 @@ $("pinForm").addEventListener("submit", async (e) => {
 
 /* ---------- auto sign-in (login screen removed per request — single user, no PIN) ---------- */
 async function autoSignIn(){
+  console.log("[debug] autoSignIn: بدأ");
   try{
     let cred;
     try{
       cred = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
+      console.log("[debug] autoSignIn: signInWithEmailAndPassword نجح، uid=", cred.user.uid);
     }catch(err){
+      console.log("[debug] autoSignIn: signInWithEmailAndPassword فشل، code=", err.code);
       if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential"){
         provisioning = true;
         cred = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
+        console.log("[debug] autoSignIn: تم إنشاء حساب جديد، uid=", cred.user.uid);
         await setDoc(doc(db,"users",cred.user.uid), {
           fullName: "فريق Omar Tareeq", email: ADMIN_EMAIL, role: "admin", walletBalance: 0, createdAt: serverTimestamp()
         });
@@ -160,11 +168,15 @@ async function autoSignIn(){
       } else throw err;
     }
     await enterAdminShell(cred.user.uid);
-  }catch(err){ toast("حصل خطأ أثناء الدخول التلقائي: " + (err?.message || "غير معروف"), "error"); }
+  }catch(err){
+    console.error("[debug] autoSignIn: فشل نهائي", err);
+    toast("حصل خطأ أثناء الدخول التلقائي: " + (err?.message || "غير معروف"), "error");
+  }
 }
 
 /* ---------- session bootstrap ---------- */
 onAuthStateChanged(auth, async (user) => {
+  console.log("[debug] onAuthStateChanged: user =", user ? user.uid : null, "provisioning =", provisioning);
   if (user){
     if (provisioning) return; // the pinForm handler above will call enterAdminShell itself once the profile write finishes
     await enterAdminShell(user.uid);
