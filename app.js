@@ -38,6 +38,25 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
+// Signal to the watchdog in index.html that this module actually started running
+// (so it can tell "the file never loaded" apart from "it loaded but a network call hung").
+window.__adminScriptLoaded = true;
+
+/* Wrap any promise with a hard timeout so a hung network call (bad connection,
+   a restrictive WebView, etc.) always eventually fails with a clear message
+   instead of leaving the UI stuck forever with no feedback. */
+function withTimeout(promise, ms, label){
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error(`${label}: مفيش رد من السيرفر خلال ${Math.round(ms/1000)} ثانية — تأكد من اتصال الإنترنت`);
+      err.code = "client-timeout";
+      reject(err);
+    }, ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 const ADMIN_PIN = "9033"; // change this to something only the team knows
 const ADMIN_EMAIL = "team@omar-tareeq-admin.internal"; // hidden shared account, not a real inbox
 const ADMIN_PASSWORD = "Ot-Team-9033-Shared-Key!"; // change this too — keep it private, same as the PIN
@@ -127,7 +146,7 @@ function setBootStatus(text){
 
 async function enterAdminShell(uid){
   try{
-    const userDoc = await getDoc(doc(db,"users",uid));
+    const userDoc = await withTimeout(getDoc(doc(db,"users",uid)), 12000, "قراءة بيانات المستخدم");
     if (!userDoc.exists() || userDoc.data().role !== "admin"){
       setBootStatus("الحساب مش عليه صلاحية admin في قاعدة البيانات (users/" + uid + ").");
       toast("حصل خطأ في الصلاحيات — تأكد إن دوكيومنت users/" + uid + " فيه role: \"admin\"", "error");
@@ -141,6 +160,9 @@ async function enterAdminShell(uid){
   }catch(err){
     setBootStatus(writeErrorMessage(err));
     toast(writeErrorMessage(err), "error");
+    if (err?.code === "client-timeout"){
+      setTimeout(() => enterAdminShell(uid), 4000);
+    }
   }
 }
 
@@ -151,14 +173,14 @@ async function autoSignIn(){
   try{
     let cred;
     try{
-      cred = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
+      cred = await withTimeout(signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD), 12000, "تسجيل الدخول");
     }catch(err){
       if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential"){
         provisioning = true;
-        cred = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-        await setDoc(doc(db,"users",cred.user.uid), {
+        cred = await withTimeout(createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD), 12000, "إنشاء الحساب");
+        await withTimeout(setDoc(doc(db,"users",cred.user.uid), {
           fullName: "فريق Omar Tareeq", email: ADMIN_EMAIL, role: "admin", walletBalance: 0, createdAt: serverTimestamp()
-        });
+        }), 12000, "حفظ بيانات الحساب");
         provisioning = false;
       } else throw err;
     }

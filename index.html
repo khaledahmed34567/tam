@@ -76,6 +76,25 @@
 
 <script type="module" src="app.js"></script>
 <script>
+  // Watchdog: catches the case where app.js (or its Firebase imports) never
+  // finished loading at all — e.g. no internet, or the CDN is blocked — so the
+  // boot screen doesn't sit forever on "جارِ الدخول..." with zero feedback.
+  window.addEventListener("error", function (e) {
+    var el = document.getElementById("bootStatusText");
+    if (el) el.textContent = "حصل خطأ أثناء تحميل التطبيق (" + (e.message || "غير معروف") + ") — تأكد من اتصال الإنترنت وأعد فتح الصفحة";
+  });
+  window.addEventListener("unhandledrejection", function (e) {
+    var el = document.getElementById("bootStatusText");
+    var msg = (e.reason && (e.reason.message || e.reason.code)) || "غير معروف";
+    if (el) el.textContent = "حصل خطأ: " + msg;
+  });
+  setTimeout(function () {
+    if (!window.__adminScriptLoaded) {
+      var el = document.getElementById("bootStatusText");
+      if (el) el.textContent = "مفيش استجابة من التطبيق — يمكن مفيش اتصال بالإنترنت أو الملفات محجوبة. تأكد من النت وأعد فتح الصفحة.";
+    }
+  }, 8000);
+
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("sw.js").catch(() => { /* installability is best-effort, ignore failures */ });
