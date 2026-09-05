@@ -37,8 +37,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
-window.__appJsLoaded = true; // علامة تأكيد: يوضح إن ملف app.js اتحمل واشتغل فعلاً
-console.log("[debug] app.js: الملف اتحمل وابتدى التنفيذ");
 
 const ADMIN_PIN = "9033"; // change this to something only the team knows
 const ADMIN_EMAIL = "team@omar-tareeq-admin.internal"; // hidden shared account, not a real inbox
@@ -57,17 +55,12 @@ function toast(msg, type=""){
   el.className = "auth-msg show " + type;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove("show"), 3200);
-  if (type === "error") console.error("[toast]", msg); // إضافة: تسجيل رسائل الخطأ في الكونسول عشان تظهر في On-screen Console
 }
 async function uploadFile(file, folder){
   const path = `${folder}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g,"")}`;
-  console.log("[debug] uploadFile: بدأ الرفع لمسار", path, "حجم الملف:", file.size, "بايت");
   const fileRef = ref(storage, path);
   await uploadBytes(fileRef, file);
-  console.log("[debug] uploadFile: uploadBytes خلص بنجاح");
-  const url = await getDownloadURL(fileRef);
-  console.log("[debug] uploadFile: getDownloadURL خلص، url=", url);
-  return url;
+  return getDownloadURL(fileRef);
 }
 function confirmDialog(title, body){
   return new Promise((resolve) => {
@@ -99,74 +92,70 @@ async function notifyUser(uid, title, body, link=""){
   }catch(err){ /* silent */ }
 }
 function writeErrorMessage(err){
-  if (err?.code === "permission-denied"){
-    return "الحفظ اترفض من قواعد أمان Firestore — لازم تسمح لـ role == admin بالكتابة على الكولكشن ده في Firestore Rules";
+  const code = err?.code || "";
+  if (code === "permission-denied"){
+    return "العملية اترفضت من قواعد أمان Firestore — لازم تسمح لـ role == admin بالقراءة/الكتابة على الكولكشن ده في Firestore Rules";
   }
-  return "حصل خطأ أثناء الحفظ: " + (err?.message || "غير معروف");
+  if (code === "unauthenticated"){
+    return "مش متسجل دخول في Firebase دلوقتي — جرّب تقفل الصفحة وتفتحها تاني";
+  }
+  if (code === "failed-precondition" && (err?.message||"").toLowerCase().includes("index")){
+    return "محتاج Index في Firestore عشان الترتيب/الفلترة ده يشتغل — افتح الرابط اللي في رسالة الخطأ في الـ Console عشان تعمله";
+  }
+  if (code === "unavailable"){
+    return "فيه مشكلة في الاتصال بالإنترنت أو بسيرفر Firebase، حاول تاني";
+  }
+  return "حصل خطأ: " + (err?.message || code || "غير معروف");
 }
 document.addEventListener("contextmenu", (e) => {
   const tag = e.target.tagName;
   if (tag !== "INPUT" && tag !== "TEXTAREA") e.preventDefault();
 });
 
-/* ---------- PIN gate (signs into a hidden shared account behind the scenes) ---------- */
+/* ---------- auto sign-in (no PIN / no login screen — single-user setup) ----------
+   The app signs itself into the hidden shared admin account automatically on load.
+   ADMIN_PIN is no longer used to gate entry, but is left in place above in case
+   you ever want to re-enable the manual PIN screen. */
 let provisioning = false;
 let currentUserData = null;
+let bootAttempted = false;
 
-async function enterAdminShell(uid){
-  console.log("[debug] enterAdminShell: بدأ التحقق من صلاحيات uid=", uid);
-  const userDoc = await getDoc(doc(db,"users",uid));
-  console.log("[debug] enterAdminShell: userDoc.exists =", userDoc.exists(), "role =", userDoc.exists() ? userDoc.data().role : null);
-  if (!userDoc.exists() || userDoc.data().role !== "admin"){
-    toast("حصل خطأ في الصلاحيات، حاول تاني", "error");
-    await signOut(auth);
-    return;
-  }
-  currentUserData = userDoc.data();
-  hide($("auth-view")); show($("adminShell"));
-  $("headerActions").classList.add("show");
-  $("headerUserBox").textContent = currentUserData.fullName || "";
-  console.log("[debug] enterAdminShell: تم عرض لوحة الإدارة");
-  initTabs();
+function setBootStatus(text){
+  const el = $("bootStatusText");
+  if (el) el.textContent = text;
 }
 
-$("pinForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const pin = $("pinInput").value.trim();
-  if (pin !== ADMIN_PIN){ toast("الرمز غير صحيح", "error"); return; }
-  $("pinInput").value = "";
+async function enterAdminShell(uid){
   try{
-    let cred;
-    try{
-      cred = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-    }catch(err){
-      if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential"){
-        provisioning = true;
-        cred = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-        await setDoc(doc(db,"users",cred.user.uid), {
-          fullName: "فريق Omar Tareeq", email: ADMIN_EMAIL, role: "admin", walletBalance: 0, createdAt: serverTimestamp()
-        });
-        provisioning = false;
-      } else throw err;
+    const userDoc = await getDoc(doc(db,"users",uid));
+    if (!userDoc.exists() || userDoc.data().role !== "admin"){
+      setBootStatus("الحساب مش عليه صلاحية admin في قاعدة البيانات (users/" + uid + ").");
+      toast("حصل خطأ في الصلاحيات — تأكد إن دوكيومنت users/" + uid + " فيه role: \"admin\"", "error");
+      return;
     }
-    await enterAdminShell(cred.user.uid);
-  }catch(err){ toast("حصل خطأ أثناء الدخول، حاول تاني", "error"); }
-});
+    currentUserData = userDoc.data();
+    hide($("auth-view")); show($("adminShell"));
+    $("headerActions").classList.add("show");
+    $("headerUserBox").textContent = currentUserData.fullName || "";
+    initTabs();
+  }catch(err){
+    setBootStatus(writeErrorMessage(err));
+    toast(writeErrorMessage(err), "error");
+  }
+}
 
-/* ---------- auto sign-in (login screen removed per request — single user, no PIN) ---------- */
 async function autoSignIn(){
-  console.log("[debug] autoSignIn: بدأ");
+  if (bootAttempted) return;
+  bootAttempted = true;
+  setBootStatus("جارِ الدخول...");
   try{
     let cred;
     try{
       cred = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-      console.log("[debug] autoSignIn: signInWithEmailAndPassword نجح، uid=", cred.user.uid);
     }catch(err){
-      console.log("[debug] autoSignIn: signInWithEmailAndPassword فشل، code=", err.code);
       if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential"){
         provisioning = true;
         cred = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-        console.log("[debug] autoSignIn: تم إنشاء حساب جديد، uid=", cred.user.uid);
         await setDoc(doc(db,"users",cred.user.uid), {
           fullName: "فريق Omar Tareeq", email: ADMIN_EMAIL, role: "admin", walletBalance: 0, createdAt: serverTimestamp()
         });
@@ -175,25 +164,27 @@ async function autoSignIn(){
     }
     await enterAdminShell(cred.user.uid);
   }catch(err){
-    console.error("[debug] autoSignIn: فشل نهائي", err);
-    toast("حصل خطأ أثناء الدخول التلقائي: " + (err?.message || "غير معروف"), "error");
+    provisioning = false;
+    setBootStatus(writeErrorMessage(err));
+    toast(writeErrorMessage(err), "error");
+    // allow retrying automatically after a moment instead of leaving the app stuck
+    bootAttempted = false;
+    setTimeout(autoSignIn, 4000);
   }
 }
 
 /* ---------- session bootstrap ---------- */
 onAuthStateChanged(auth, async (user) => {
-  console.log("[debug] onAuthStateChanged: user =", user ? user.uid : null, "provisioning =", provisioning);
   if (user){
-    if (provisioning) return; // the pinForm handler above will call enterAdminShell itself once the profile write finishes
+    if (provisioning) return; // autoSignIn() above will call enterAdminShell itself once the profile write finishes
     await enterAdminShell(user.uid);
   } else {
     currentUserData = null;
-    hide($("adminShell"));
+    show($("auth-view")); hide($("adminShell"));
     $("headerActions").classList.remove("show");
-    autoSignIn(); // login screen removed — sign in automatically instead of showing the PIN form
+    autoSignIn();
   }
 });
-$("logoutBtn").onclick = () => signOut(auth);
 
 /* ---------- tabs ---------- */
 let adminTab = "overview";
@@ -275,18 +266,22 @@ async function adminStudents(pane){
   pane.innerHTML = `
     <div class="students-search"><input id="studentSearch" placeholder="ابحث بالاسم أو الإيميل أو الهاتف أو اسم المستخدم" /></div>
     <div id="studentsList" class="row-list panel"><div class="empty-state">جارِ التحميل</div></div>`;
-  const snap = await getDocs(collection(db,"users"));
-  const all = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-  renderStudentsList(all, all);
-  $("studentSearch").addEventListener("input", (e) => {
-    const q = e.target.value.trim().toLowerCase();
-    const filtered = !q ? all : all.filter(u =>
-      (u.fullName||"").toLowerCase().includes(q) ||
-      (u.email||"").toLowerCase().includes(q) ||
-      (u.phone||"").includes(q) ||
-      (u.username||"").toLowerCase().includes(q));
-    renderStudentsList(filtered, all);
-  });
+  try{
+    const snap = await getDocs(collection(db,"users"));
+    const all = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    renderStudentsList(all, all);
+    $("studentSearch").addEventListener("input", (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      const filtered = !q ? all : all.filter(u =>
+        (u.fullName||"").toLowerCase().includes(q) ||
+        (u.email||"").toLowerCase().includes(q) ||
+        (u.phone||"").includes(q) ||
+        (u.username||"").toLowerCase().includes(q));
+      renderStudentsList(filtered, all);
+    });
+  }catch(err){
+    $("studentsList").innerHTML = `<div class="empty-state">${writeErrorMessage(err)}</div>`;
+  }
 }
 function renderStudentsList(list, all){
   const box = $("studentsList");
@@ -333,7 +328,7 @@ function renderStudentsList(list, all){
 async function adminTracks(pane){
   pane.innerHTML = `
     <div class="panel">
-      <form id="trackForm" class="form-grid" novalidate>
+      <form id="trackForm" class="form-grid">
         <label class="field field-wide"><span>عنوان المسار</span><input id="tTitle" required /></label>
         <label class="field"><span>الصف</span><select id="tGrade" required><option value="" disabled selected>اختر</option>${gradeOptions()}</select></label>
         <label class="field"><span>الترتيب</span><input id="tOrder" type="number" value="1" required /></label>
@@ -346,48 +341,55 @@ async function adminTracks(pane){
 
   $("trackForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    console.log("[debug] trackForm: submit اشتغل");
     try{
       const file = $("tImage").files[0];
-      console.log("[debug] trackForm: فيه صورة؟", !!file);
       const imageUrl = file ? await uploadFile(file, "trackImages") : "";
-      console.log("[debug] trackForm: رفع الصورة خلص، imageUrl=", imageUrl);
       await addDoc(collection(db,"tracks"), {
         title: $("tTitle").value.trim(), grade: $("tGrade").value, order: +$("tOrder").value,
         description: $("tDesc").value.trim(), imageUrl, coursesCount: 0, createdAt: serverTimestamp()
       });
-      console.log("[debug] trackForm: تم الحفظ في Firestore بنجاح");
       toast("تمت إضافة المسار", "success");
       e.target.reset();
       loadTracksAdminList();
-    }catch(err){ console.error("[debug] trackForm: خطأ", err); toast(writeErrorMessage(err), "error"); }
+    }catch(err){ toast(writeErrorMessage(err), "error"); }
   });
   loadTracksAdminList();
 }
 async function loadTracksAdminList(){
   const list = $("tracksAdminList");
-  const snap = await getDocs(query(collection(db,"tracks"), orderBy("order","asc")));
-  if (snap.empty){ list.innerHTML = `<div class="empty-state">لا توجد مسارات</div>`; return; }
-  list.innerHTML = snap.docs.map(d => {
-    const t = d.data();
-    return `<div class="row-item"><div class="row-main"><span class="row-title">${escapeHtml(t.title)}</span><span class="row-sub">${escapeHtml(t.grade)}</span></div>
-      <div class="row-actions"><button class="chip-btn danger" data-del="${d.id}">حذف</button></div></div>`;
-  }).join("");
-  list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
-    if (await confirmDialog("حذف المسار","هل أنت متأكد؟ الكورسات المرتبطة به لن تُحذف تلقائيًا.")){
-      await deleteDoc(doc(db,"tracks",b.dataset.del));
-      loadTracksAdminList();
-    }
-  }));
+  list.innerHTML = `<div class="empty-state">جارِ التحميل</div>`;
+  try{
+    const snap = await getDocs(query(collection(db,"tracks"), orderBy("order","asc")));
+    if (snap.empty){ list.innerHTML = `<div class="empty-state">لا توجد مسارات</div>`; return; }
+    list.innerHTML = snap.docs.map(d => {
+      const t = d.data();
+      return `<div class="row-item"><div class="row-main"><span class="row-title">${escapeHtml(t.title)}</span><span class="row-sub">${escapeHtml(t.grade)}</span></div>
+        <div class="row-actions"><button class="chip-btn danger" data-del="${d.id}">حذف</button></div></div>`;
+    }).join("");
+    list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
+      if (await confirmDialog("حذف المسار","هل أنت متأكد؟ الكورسات المرتبطة به لن تُحذف تلقائيًا.")){
+        try{ await deleteDoc(doc(db,"tracks",b.dataset.del)); loadTracksAdminList(); }
+        catch(err){ toast(writeErrorMessage(err), "error"); }
+      }
+    }));
+  }catch(err){
+    list.innerHTML = `<div class="empty-state">${writeErrorMessage(err)}</div>`;
+  }
 }
 
 /* ---- admin: courses ---- */
 async function adminCourses(pane){
-  const tracksSnap = await getDocs(collection(db,"tracks"));
+  let tracksSnap;
+  try{
+    tracksSnap = await getDocs(collection(db,"tracks"));
+  }catch(err){
+    pane.innerHTML = `<div class="empty-state">${writeErrorMessage(err)}</div>`;
+    return;
+  }
   const trackOptions = tracksSnap.docs.map(d => `<option value="${d.id}">${escapeHtml(d.data().title)}</option>`).join("");
   pane.innerHTML = `
     <div class="panel">
-      <form id="courseForm" class="form-grid" novalidate>
+      <form id="courseForm" class="form-grid">
         <label class="field field-wide"><span>المسار</span><select id="cTrack" required><option value="" disabled selected>اختر مسار</option>${trackOptions}</select></label>
         <label class="field"><span>عنوان الكورس</span><input id="cTitle" required /></label>
         <label class="field"><span>الشهر</span><input id="cMonth" placeholder="مثال: أكتوبر" /></label>
@@ -419,25 +421,39 @@ async function adminCourses(pane){
 }
 async function loadCoursesAdminList(){
   const list = $("coursesAdminList");
-  const snap = await getDocs(collection(db,"courses"));
-  if (snap.empty){ list.innerHTML = `<div class="empty-state">لا توجد كورسات</div>`; return; }
-  list.innerHTML = snap.docs.map(d => {
-    const c = d.data();
-    return `<div class="row-item"><div class="row-main"><span class="row-title">${escapeHtml(c.title)}</span><span class="row-sub">${escapeHtml(c.grade)} • ${c.price>0?c.price+" ج.م":"مجاني"}</span></div>
-      <div class="row-actions"><button class="chip-btn danger" data-del="${d.id}">حذف</button></div></div>`;
-  }).join("");
-  list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
-    if (await confirmDialog("حذف الكورس","هل أنت متأكد؟")){ await deleteDoc(doc(db,"courses",b.dataset.del)); loadCoursesAdminList(); }
-  }));
+  list.innerHTML = `<div class="empty-state">جارِ التحميل</div>`;
+  try{
+    const snap = await getDocs(collection(db,"courses"));
+    if (snap.empty){ list.innerHTML = `<div class="empty-state">لا توجد كورسات</div>`; return; }
+    list.innerHTML = snap.docs.map(d => {
+      const c = d.data();
+      return `<div class="row-item"><div class="row-main"><span class="row-title">${escapeHtml(c.title)}</span><span class="row-sub">${escapeHtml(c.grade)} • ${c.price>0?c.price+" ج.م":"مجاني"}</span></div>
+        <div class="row-actions"><button class="chip-btn danger" data-del="${d.id}">حذف</button></div></div>`;
+    }).join("");
+    list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
+      if (await confirmDialog("حذف الكورس","هل أنت متأكد؟")){
+        try{ await deleteDoc(doc(db,"courses",b.dataset.del)); loadCoursesAdminList(); }
+        catch(err){ toast(writeErrorMessage(err), "error"); }
+      }
+    }));
+  }catch(err){
+    list.innerHTML = `<div class="empty-state">${writeErrorMessage(err)}</div>`;
+  }
 }
 
 /* ---- admin: lectures ---- */
 async function adminLectures(pane){
-  const coursesSnap = await getDocs(collection(db,"courses"));
+  let coursesSnap;
+  try{
+    coursesSnap = await getDocs(collection(db,"courses"));
+  }catch(err){
+    pane.innerHTML = `<div class="empty-state">${writeErrorMessage(err)}</div>`;
+    return;
+  }
   const courseOptions = coursesSnap.docs.map(d => `<option value="${d.id}">${escapeHtml(d.data().title)}</option>`).join("");
   pane.innerHTML = `
     <div class="panel">
-      <form id="lectureForm" class="form-grid" novalidate>
+      <form id="lectureForm" class="form-grid">
         <label class="field field-wide"><span>الكورس</span><select id="lCourse" required><option value="" disabled selected>اختر كورس</option>${courseOptions}</select></label>
         <label class="field"><span>عنوان المحاضرة</span><input id="lTitle" required /></label>
         <label class="field"><span>الترتيب</span><input id="lOrder" type="number" value="1" required /></label>
@@ -461,26 +477,40 @@ async function adminLectures(pane){
 }
 async function loadLecturesAdminList(){
   const list = $("lecturesAdminList");
-  const snap = await getDocs(query(collection(db,"lectures"), orderBy("order","asc")));
-  if (snap.empty){ list.innerHTML = `<div class="empty-state">لا توجد محاضرات</div>`; return; }
-  list.innerHTML = snap.docs.map(d => {
-    const l = d.data();
-    return `<div class="row-item"><div class="row-main"><span class="row-title">${escapeHtml(l.title)}</span></div>
-      <div class="row-actions"><button class="chip-btn danger" data-del="${d.id}">حذف</button></div></div>`;
-  }).join("");
-  list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
-    if (await confirmDialog("حذف المحاضرة","هل أنت متأكد؟")){ await deleteDoc(doc(db,"lectures",b.dataset.del)); loadLecturesAdminList(); }
-  }));
+  list.innerHTML = `<div class="empty-state">جارِ التحميل</div>`;
+  try{
+    const snap = await getDocs(query(collection(db,"lectures"), orderBy("order","asc")));
+    if (snap.empty){ list.innerHTML = `<div class="empty-state">لا توجد محاضرات</div>`; return; }
+    list.innerHTML = snap.docs.map(d => {
+      const l = d.data();
+      return `<div class="row-item"><div class="row-main"><span class="row-title">${escapeHtml(l.title)}</span></div>
+        <div class="row-actions"><button class="chip-btn danger" data-del="${d.id}">حذف</button></div></div>`;
+    }).join("");
+    list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
+      if (await confirmDialog("حذف المحاضرة","هل أنت متأكد؟")){
+        try{ await deleteDoc(doc(db,"lectures",b.dataset.del)); loadLecturesAdminList(); }
+        catch(err){ toast(writeErrorMessage(err), "error"); }
+      }
+    }));
+  }catch(err){
+    list.innerHTML = `<div class="empty-state">${writeErrorMessage(err)}</div>`;
+  }
 }
 
 /* ---- admin: tasks ---- */
 let taskBuilderQuestions = [];
 async function adminTasks(pane){
-  const lecturesSnap = await getDocs(collection(db,"lectures"));
+  let lecturesSnap;
+  try{
+    lecturesSnap = await getDocs(collection(db,"lectures"));
+  }catch(err){
+    pane.innerHTML = `<div class="empty-state">${writeErrorMessage(err)}</div>`;
+    return;
+  }
   const lectureOptions = lecturesSnap.docs.map(d => `<option value="${d.id}">${escapeHtml(d.data().title)}</option>`).join("");
   pane.innerHTML = `
     <div class="panel">
-      <form id="taskForm" class="form-grid" novalidate>
+      <form id="taskForm" class="form-grid">
         <label class="field field-wide"><span>المحاضرة</span><select id="taskLecture" required><option value="" disabled selected>اختر محاضرة</option>${lectureOptions}</select></label>
         <label class="field"><span>عنوان المهمة</span><input id="taskTitle" required /></label>
         <label class="field"><span>الترتيب</span><input id="taskOrder" type="number" value="1" required /></label>
@@ -646,22 +676,30 @@ async function submitTaskForm(e){
     $("taskType").value = "video";
     loadTasksAdminList();
   }catch(err){
-    toast("حصل خطأ أثناء إضافة المهمة", "error");
+    toast(writeErrorMessage(err), "error");
   }
 }
 async function loadTasksAdminList(){
   const list = $("tasksAdminList");
-  const snap = await getDocs(query(collection(db,"tasks"), orderBy("order","asc")));
-  if (snap.empty){ list.innerHTML = `<div class="empty-state">لا توجد مهام</div>`; return; }
-  const typeLabel = { video:"فيديو", pdf:"PDF", quiz:"اختبار", text:"نص" };
-  list.innerHTML = snap.docs.map(d => {
-    const t = d.data();
-    return `<div class="row-item"><div class="row-main"><span class="row-title">${escapeHtml(t.title)}</span><span class="row-sub">${typeLabel[t.type]||""}</span></div>
-      <div class="row-actions"><button class="chip-btn danger" data-del="${d.id}">حذف</button></div></div>`;
-  }).join("");
-  list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
-    if (await confirmDialog("حذف المهمة","هل أنت متأكد؟")){ await deleteDoc(doc(db,"tasks",b.dataset.del)); loadTasksAdminList(); }
-  }));
+  list.innerHTML = `<div class="empty-state">جارِ التحميل</div>`;
+  try{
+    const snap = await getDocs(query(collection(db,"tasks"), orderBy("order","asc")));
+    if (snap.empty){ list.innerHTML = `<div class="empty-state">لا توجد مهام</div>`; return; }
+    const typeLabel = { video:"فيديو", pdf:"PDF", quiz:"اختبار", text:"نص" };
+    list.innerHTML = snap.docs.map(d => {
+      const t = d.data();
+      return `<div class="row-item"><div class="row-main"><span class="row-title">${escapeHtml(t.title)}</span><span class="row-sub">${typeLabel[t.type]||""}</span></div>
+        <div class="row-actions"><button class="chip-btn danger" data-del="${d.id}">حذف</button></div></div>`;
+    }).join("");
+    list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
+      if (await confirmDialog("حذف المهمة","هل أنت متأكد؟")){
+        try{ await deleteDoc(doc(db,"tasks",b.dataset.del)); loadTasksAdminList(); }
+        catch(err){ toast(writeErrorMessage(err), "error"); }
+      }
+    }));
+  }catch(err){
+    list.innerHTML = `<div class="empty-state">${writeErrorMessage(err)}</div>`;
+  }
 }
 
 /* ---- admin: comprehensive exams ---- */
@@ -669,7 +707,7 @@ let examBuilderQuestions = [];
 async function adminExams(pane){
   pane.innerHTML = `
     <div class="panel">
-      <form id="examForm" class="form-grid" novalidate>
+      <form id="examForm" class="form-grid">
         <label class="field field-wide"><span>عنوان الاختبار</span><input id="eTitle" required /></label>
         <label class="field"><span>الصف</span><select id="eGrade" required><option value="" disabled selected>اختر</option>${gradeOptions()}</select></label>
         <label class="field"><span>مدة الاختبار (دقيقة)</span><input id="eDuration" type="number" value="30" required /></label>
@@ -742,29 +780,43 @@ async function submitExamForm(e){
     examBuilderQuestions = [];
     renderExamQuestionBuilder();
     loadExamsAdminList();
-  }catch(err){ toast("حصل خطأ أثناء إنشاء الاختبار", "error"); }
+  }catch(err){ toast(writeErrorMessage(err), "error"); }
 }
 async function loadExamsAdminList(){
   const list = $("examsAdminList");
-  const snap = await getDocs(collection(db,"comprehensiveExams"));
-  if (snap.empty){ list.innerHTML = `<div class="empty-state">لا توجد اختبارات</div>`; return; }
-  list.innerHTML = snap.docs.map(d => {
-    const ex = d.data();
-    const url = `${location.origin}${location.pathname}#/exam/${d.id}`;
-    return `<div class="row-item"><div class="row-main"><span class="row-title">${escapeHtml(ex.title)}</span><span class="row-sub">${escapeHtml(ex.grade)}</span></div>
-      <div class="row-actions"><button class="chip-btn" data-copy="${url}">نسخ الرابط</button><button class="chip-btn danger" data-del="${d.id}">حذف</button></div></div>`;
-  }).join("");
-  wireCopyButtons(list);
-  list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
-    if (await confirmDialog("حذف الاختبار","هل أنت متأكد؟")){ await deleteDoc(doc(db,"comprehensiveExams",b.dataset.del)); loadExamsAdminList(); }
-  }));
+  list.innerHTML = `<div class="empty-state">جارِ التحميل</div>`;
+  try{
+    const snap = await getDocs(collection(db,"comprehensiveExams"));
+    if (snap.empty){ list.innerHTML = `<div class="empty-state">لا توجد اختبارات</div>`; return; }
+    list.innerHTML = snap.docs.map(d => {
+      const ex = d.data();
+      const url = `${location.origin}${location.pathname}#/exam/${d.id}`;
+      return `<div class="row-item"><div class="row-main"><span class="row-title">${escapeHtml(ex.title)}</span><span class="row-sub">${escapeHtml(ex.grade)}</span></div>
+        <div class="row-actions"><button class="chip-btn" data-copy="${url}">نسخ الرابط</button><button class="chip-btn danger" data-del="${d.id}">حذف</button></div></div>`;
+    }).join("");
+    wireCopyButtons(list);
+    list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
+      if (await confirmDialog("حذف الاختبار","هل أنت متأكد؟")){
+        try{ await deleteDoc(doc(db,"comprehensiveExams",b.dataset.del)); loadExamsAdminList(); }
+        catch(err){ toast(writeErrorMessage(err), "error"); }
+      }
+    }));
+  }catch(err){
+    list.innerHTML = `<div class="empty-state">${writeErrorMessage(err)}</div>`;
+  }
 }
 
 /* ---- admin: wallet requests ---- */
 async function adminWallet(pane){
   pane.innerHTML = `<div id="walletAdminList" class="row-list panel"><div class="empty-state">جارِ التحميل</div></div>`;
   const list = $("walletAdminList");
-  const snap = await getDocs(query(collection(db,"walletRequests"), where("status","==","pending")));
+  let snap;
+  try{
+    snap = await getDocs(query(collection(db,"walletRequests"), where("status","==","pending")));
+  }catch(err){
+    list.innerHTML = `<div class="empty-state">${writeErrorMessage(err)}</div>`;
+    return;
+  }
   if (snap.empty){ list.innerHTML = `<div class="empty-state">لا توجد طلبات معلّقة</div>`; return; }
   list.innerHTML = snap.docs.map(d => {
     const r = d.data();
